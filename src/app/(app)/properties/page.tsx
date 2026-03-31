@@ -66,6 +66,7 @@ export default async function PropertiesPage() {
                 <Link
                   key={property.id}
                   href={`/properties/${property.id}`}
+                  data-testid="property-link"
                   className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-sm transition group"
                 >
                   <div className="flex items-start justify-between mb-3">

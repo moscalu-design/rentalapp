@@ -4,7 +4,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import { RoomStatusBadge, PaymentStatusBadge, DepositStatusBadge } from "@/components/shared/StatusBadge";
 import { RecordPaymentForm } from "@/components/payments/RecordPaymentForm";
 import { AssignTenantForm } from "@/components/rooms/AssignTenantForm";
-import { endOccupancy } from "@/actions/occupancies";
+import { EndTenancyForm } from "@/components/rooms/EndTenancyForm";
 import prisma from "@/lib/prisma";
 import { formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
 
@@ -120,18 +120,7 @@ export default async function RoomDetailPage({
             <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-slate-800">Current Tenant</h2>
-                <form
-                  action={endOccupancy.bind(null, activeOccupancy.id)}
-                  onSubmit={(e) => {
-                    if (!confirm("End this tenancy? This will mark the room as vacant.")) {
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  <button type="submit" className="text-xs text-red-600 hover:text-red-700 font-medium">
-                    End Tenancy
-                  </button>
-                </form>
+                <EndTenancyForm occupancyId={activeOccupancy.id} />
               </div>
 
               <div className="flex items-center gap-3">

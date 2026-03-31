@@ -123,7 +123,7 @@ export function DocumentSlot({
   };
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5" data-testid={`document-slot-${type}`}>
       {/* Label */}
       <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p>
 
@@ -264,6 +264,7 @@ export function DocumentSlot({
         type="file"
         accept={ACCEPT}
         className="hidden"
+        data-testid={`document-input-${type}`}
         onChange={(e) => handleFiles(e.target.files)}
       />
     </div>

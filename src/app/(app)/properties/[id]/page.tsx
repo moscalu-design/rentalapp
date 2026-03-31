@@ -118,6 +118,7 @@ export default async function PropertyDetailPage({
                     <Link
                       key={room.id}
                       href={`/rooms/${room.id}`}
+                      data-testid="room-link"
                       className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-5 py-4 hover:border-blue-300 hover:shadow-sm transition group"
                     >
                       <div className="min-w-0">
