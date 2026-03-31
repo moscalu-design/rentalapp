@@ -82,6 +82,18 @@ export const PaymentSchema = z.object({
 
 export type PaymentInput = z.infer<typeof PaymentSchema>;
 
+// ─── Utility Cost ─────────────────────────────────────────────────────────────
+
+export const UtilityCostSchema = z.object({
+  type: z.enum(["ELECTRICITY", "GAS", "INTERNET", "INSURANCE", "CLEANING", "WATER", "TRASH"]),
+  provider: z.string().max(100).optional().or(z.literal("")),
+  amount: z.coerce.number().min(0, "Amount must be 0 or more"),
+  billingCycle: z.enum(["MONTHLY", "QUARTERLY", "ANNUAL", "ONE_OFF"]).default("MONTHLY"),
+  notes: z.string().max(500).optional().or(z.literal("")),
+});
+
+export type UtilityCostInput = z.infer<typeof UtilityCostSchema>;
+
 // ─── Deposit transaction ──────────────────────────────────────────────────────
 
 export const DepositTransactionSchema = z.object({

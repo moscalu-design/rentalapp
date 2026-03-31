@@ -54,9 +54,24 @@ model Property {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  rooms        Room[]
+  rooms         Room[]
+  utilityCosts  UtilityCost[]
   propertyNotes Note[]        @relation("PropertyNotes")
   activityLogs  ActivityLog[] @relation("PropertyActivity")
+}
+
+model UtilityCost {
+  id           String   @id @default(cuid())
+  propertyId   String
+  type         String   // ELECTRICITY | GAS | INTERNET | INSURANCE | CLEANING | WATER | TRASH
+  provider     String?
+  amount       Float
+  billingCycle String   @default("MONTHLY") // MONTHLY | QUARTERLY | ANNUAL | ONE_OFF
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 }
 
 model Room {
