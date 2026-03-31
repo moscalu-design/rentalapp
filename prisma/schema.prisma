@@ -1,0 +1,223 @@
+// Rental Management App — Prisma 7 Schema
+// Using SQLite for local dev. To switch to PostgreSQL:
+//   1. Change provider to "postgresql"
+//   2. Update DATABASE_URL in .env
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Note: SQLite has no native enum support. String fields are used throughout;
+// valid values are enforced at the application/Zod layer.
+//
+// String enums used in this schema:
+//   PropertyType:         HOUSE | APARTMENT | HMO | STUDIO | OTHER
+//   PropertyStatus:       ACTIVE | INACTIVE | ARCHIVED
+//   RoomStatus:           VACANT | OCCUPIED | MAINTENANCE | RESERVED
+//   TenantStatus:         ACTIVE | PAST | PENDING | BLOCKED
+//   OccupancyStatus:      ACTIVE | ENDED | PENDING
+//   PaymentStatus:        PAID | UNPAID | PARTIAL | OVERDUE | WAIVED
+//   PaymentMethod:        BANK_TRANSFER | CASH | STANDING_ORDER | OTHER
+//   DepositStatus:        PENDING | PARTIAL | RECEIVED | REFUNDED | PARTIAL_REFUND | DEDUCTED
+//   DepositTxType:        RECEIVED | DEDUCTION | REFUND | ADJUSTMENT
+//   UserRole:             ADMIN | VIEWER
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String   // bcrypt hash — never exposed to client
+  name         String
+  role         String   @default("ADMIN")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  activityLogs ActivityLog[]
+}
+
+model Property {
+  id           String   @id @default(cuid())
+  name         String
+  address      String
+  city         String
+  postcode     String?
+  country      String   @default("UK")
+  propertyType String   @default("HOUSE")
+  status       String   @default("ACTIVE")
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  rooms        Room[]
+  propertyNotes Note[]        @relation("PropertyNotes")
+  activityLogs  ActivityLog[] @relation("PropertyActivity")
+}
+
+model Room {
+  id              String   @id @default(cuid())
+  propertyId      String
+  name            String   // "Blue Room", "Room 1", "Garden Room"
+  floor           String?
+  sizeM2          Float?
+  furnished       Boolean  @default(true)
+  privateBathroom Boolean  @default(false)
+  monthlyRent     Float
+  depositAmount   Float
+  status          String   @default("VACANT")
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  property        Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  occupancies     Occupancy[]
+  roomNotes       Note[]        @relation("RoomNotes")
+  activityLogs    ActivityLog[] @relation("RoomActivity")
+}
+
+// Occupancy = one lease period: Tenant ↔ Room for a date range
+// All Payments and the Deposit belong to an Occupancy, not directly to a Tenant
+model Tenant {
+  id               String    @id @default(cuid())
+  firstName        String
+  lastName         String
+  email            String    @unique
+  phone            String?
+  nationality      String?
+  dateOfBirth      DateTime?
+  emergencyContact String?   // JSON: { name, phone, relationship }
+  idType           String?   // PASSPORT | DRIVERS_LICENSE | NATIONAL_ID
+  idReference      String?
+  status           String    @default("ACTIVE")
+  notes            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  occupancies      Occupancy[]
+  tenantNotes      Note[]      @relation("TenantNotes")
+  activityLogs     ActivityLog[] @relation("TenantActivity")
+}
+
+model Occupancy {
+  id              String    @id @default(cuid())
+  roomId          String
+  tenantId        String
+  leaseStart      DateTime
+  leaseEnd        DateTime?
+  moveInDate      DateTime?
+  moveOutDate     DateTime?
+  monthlyRent     Float     // agreed rent for this lease (may differ from room.monthlyRent)
+  depositRequired Float
+  rentDueDay      Int       @default(1) // 1–28: day of month rent is due
+  status          String    @default("ACTIVE")
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  room            Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  payments        Payment[]
+  deposit         Deposit?
+  activityLogs    ActivityLog[] @relation("OccupancyActivity")
+}
+
+// One record per calendar month per occupancy
+model Payment {
+  id            String    @id @default(cuid())
+  occupancyId   String
+  periodYear    Int       // 2026
+  periodMonth   Int       // 1–12
+  amountDue     Float
+  amountPaid    Float     @default(0)
+  status        String    @default("UNPAID")
+  paidAt        DateTime?
+  dueDate       DateTime
+  paymentMethod String?
+  reference     String?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  occupancy     Occupancy @relation(fields: [occupancyId], references: [id], onDelete: Cascade)
+  paymentNotes  Note[]    @relation("PaymentNotes")
+
+  @@unique([occupancyId, periodYear, periodMonth])
+}
+
+// One deposit per occupancy
+model Deposit {
+  id             String    @id @default(cuid())
+  occupancyId    String    @unique
+  required       Float
+  received       Float     @default(0)
+  receivedAt     DateTime?
+  status         String    @default("PENDING")
+  refunded       Boolean   @default(false)
+  refundAmount   Float?
+  refundedAt     DateTime?
+  deductionNotes String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  occupancy      Occupancy            @relation(fields: [occupancyId], references: [id], onDelete: Cascade)
+  transactions   DepositTransaction[]
+}
+
+model DepositTransaction {
+  id          String   @id @default(cuid())
+  depositId   String
+  type        String   // RECEIVED | DEDUCTION | REFUND | ADJUSTMENT
+  amount      Float
+  date        DateTime
+  description String?
+  createdAt   DateTime @default(now())
+
+  deposit     Deposit  @relation(fields: [depositId], references: [id], onDelete: Cascade)
+}
+
+// Polymorphic notes — one model, linked to any entity via nullable FK
+model Note {
+  id         String   @id @default(cuid())
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  propertyId String?
+  roomId     String?
+  tenantId   String?
+  paymentId  String?
+
+  property   Property? @relation("PropertyNotes", fields: [propertyId], references: [id], onDelete: Cascade)
+  room       Room?     @relation("RoomNotes", fields: [roomId], references: [id], onDelete: Cascade)
+  tenant     Tenant?   @relation("TenantNotes", fields: [tenantId], references: [id], onDelete: Cascade)
+  payment    Payment?  @relation("PaymentNotes", fields: [paymentId], references: [id], onDelete: Cascade)
+}
+
+// Lightweight audit trail — records major system events
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String   // PROPERTY_CREATED | ROOM_ADDED | TENANT_ASSIGNED | PAYMENT_RECORDED | TENANT_MOVED_OUT …
+  description String
+  entityType  String   // PROPERTY | ROOM | TENANT | OCCUPANCY | PAYMENT | DEPOSIT
+  entityId    String
+  metadata    String?  // JSON for extra context
+  createdAt   DateTime @default(now())
+
+  userId      String?
+  user        User?      @relation(fields: [userId], references: [id])
+
+  propertyId  String?
+  roomId      String?
+  tenantId    String?
+  occupancyId String?
+
+  property    Property?  @relation("PropertyActivity", fields: [propertyId], references: [id], onDelete: SetNull)
+  room        Room?      @relation("RoomActivity", fields: [roomId], references: [id], onDelete: SetNull)
+  tenant      Tenant?    @relation("TenantActivity", fields: [tenantId], references: [id], onDelete: SetNull)
+  occupancy   Occupancy? @relation("OccupancyActivity", fields: [occupancyId], references: [id], onDelete: SetNull)
+}
