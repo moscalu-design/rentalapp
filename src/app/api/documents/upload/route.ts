@@ -15,7 +15,7 @@ const ALLOWED_TYPES = new Set([
 
 const ALLOWED_EXTENSIONS = /\.(pdf|jpg|jpeg|png)$/i;
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4 MB, safely below Vercel's 4.5 MB payload limit
 
 const VALID_DOC_TYPES = new Set(["idDocument", "workContract", "salarySlip"]);
 
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: "File is too large. Maximum size is 10 MB." },
+        { error: "File is too large. Maximum size is 4 MB." },
         { status: 400 }
       );
     }

@@ -244,7 +244,7 @@ export function DocumentSlot({
           <p className="text-xs text-slate-500">
             <span className="font-medium text-blue-600">Choose file</span> or drag & drop
           </p>
-          <p className="text-xs text-slate-400 mt-0.5">PDF, JPG or PNG · max 10 MB</p>
+          <p className="text-xs text-slate-400 mt-0.5">PDF, JPG or PNG · max 4 MB</p>
         </div>
       )}
 
