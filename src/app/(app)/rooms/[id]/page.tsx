@@ -4,6 +4,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import { RoomStatusBadge, PaymentStatusBadge, DepositStatusBadge } from "@/components/shared/StatusBadge";
 import { RecordPaymentForm } from "@/components/payments/RecordPaymentForm";
 import { AssignTenantForm } from "@/components/rooms/AssignTenantForm";
+import { DeleteRoomForm } from "@/components/rooms/DeleteRoomForm";
 import { EndTenancyForm } from "@/components/rooms/EndTenancyForm";
 import prisma from "@/lib/prisma";
 import { formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
@@ -70,6 +71,9 @@ export default async function RoomDetailPage({
         actions={
           <div className="flex items-center gap-2">
             <RoomStatusBadge status={room.status} />
+            {!activeOccupancy && (
+              <DeleteRoomForm roomId={id} propertyId={room.propertyId} />
+            )}
             <Link
               href={`/rooms/${id}/edit`}
               className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"

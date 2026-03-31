@@ -80,3 +80,22 @@ export async function updateRoom(id: string, propertyId: string, formData: FormD
   revalidatePath(`/properties/${propertyId}`);
   redirect(`/rooms/${id}`);
 }
+
+export async function deleteRoom(id: string, propertyId: string) {
+  await requireAuth();
+
+  const activeOccupancy = await prisma.occupancy.findFirst({
+    where: { roomId: id, status: "ACTIVE" },
+    select: { id: true },
+  });
+
+  if (activeOccupancy) {
+    throw new Error("Cannot delete a room with an active tenancy.");
+  }
+
+  await prisma.room.delete({ where: { id } });
+
+  revalidatePath("/properties");
+  revalidatePath(`/properties/${propertyId}`);
+  redirect(`/properties/${propertyId}`);
+}

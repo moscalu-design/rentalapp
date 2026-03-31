@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { TopBar } from "@/components/layout/TopBar";
 import { TenantStatusBadge, PaymentStatusBadge, DepositStatusBadge } from "@/components/shared/StatusBadge";
 import { DocumentsSection } from "@/components/documents/DocumentsSection";
+import { DeleteTenantForm } from "@/components/tenants/DeleteTenantForm";
 import prisma from "@/lib/prisma";
 import { formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
 
@@ -59,6 +60,7 @@ export default async function TenantDetailPage({
         actions={
           <div className="flex items-center gap-2">
             <TenantStatusBadge status={tenant.status} />
+            {!activeOccupancy && <DeleteTenantForm tenantId={id} />}
             <Link
               href={`/tenants/${id}/edit`}
               className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"

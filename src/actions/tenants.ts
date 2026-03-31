@@ -90,3 +90,21 @@ export async function updateTenant(id: string, formData: FormData) {
   revalidatePath(`/tenants/${id}`);
   redirect(`/tenants/${id}`);
 }
+
+export async function deleteTenant(id: string) {
+  await requireAuth();
+
+  const activeOccupancy = await prisma.occupancy.findFirst({
+    where: { tenantId: id, status: "ACTIVE" },
+    select: { id: true },
+  });
+
+  if (activeOccupancy) {
+    throw new Error("Cannot delete a tenant with an active tenancy.");
+  }
+
+  await prisma.tenant.delete({ where: { id } });
+
+  revalidatePath("/tenants");
+  redirect("/tenants");
+}

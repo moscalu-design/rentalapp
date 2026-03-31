@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TopBar } from "@/components/layout/TopBar";
+import { ArchivePropertyForm } from "@/components/properties/ArchivePropertyForm";
 import { RoomStatusBadge } from "@/components/shared/StatusBadge";
 import { UtilityCostsSection } from "@/components/properties/UtilityCostsSection";
 import prisma from "@/lib/prisma";
@@ -58,12 +59,15 @@ export default async function PropertyDetailPage({
         title={property.name}
         description={`${property.address}, ${property.city}`}
         actions={
-          <Link
-            href={`/properties/${id}/edit`}
-            className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
-          >
-            Edit Property
-          </Link>
+          <>
+            <ArchivePropertyForm propertyId={id} />
+            <Link
+              href={`/properties/${id}/edit`}
+              className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              Edit Property
+            </Link>
+          </>
         }
       />
 
