@@ -57,7 +57,8 @@ test("payment flow creates relationship-backed payments and records updates safe
     await expect
       .poll(async () => page.locator('input[name="amountPaid"]').inputValue())
       .toBe("1111");
-    await expect(page.getByRole("row", { name: /Paid/i }).first()).toContainText("£1,111");
+    await expect(page.locator("tbody tr").first()).toContainText("£1,111");
+    await expect(page.locator("tbody tr").first()).toContainText("Paid");
     await assertAppHealthy(page, monitor, "payment recorded");
 
     monitor.reset();

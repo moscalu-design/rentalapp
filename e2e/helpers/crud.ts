@@ -127,7 +127,8 @@ export async function createTenant(page: Page, overrides?: Partial<{
   await page.locator('textarea[name="notes"]').fill(notes);
   await page.getByRole("button", { name: "Create Tenant" }).click();
 
-  await expect(page.getByRole("heading", { name: `${firstName} ${lastName}` })).toBeVisible();
+  await expect(page).toHaveURL(/\/tenants\/[^/]+$/);
+  await expect(page.locator("h1")).toHaveText(`${firstName} ${lastName}`);
 
   return {
     id: pathId(new URL(page.url()).pathname),

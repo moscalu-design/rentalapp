@@ -13,7 +13,7 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:prod": "PLAYWRIGHT_BASE_URL=https://rentalapp-phi.vercel.app playwright test",
-    "test:e2e:crud": "playwright test e2e/properties.spec.ts e2e/rooms.spec.ts e2e/tenants.spec.ts e2e/payments.spec.ts e2e/files.spec.ts",
+    "test:e2e:crud": "playwright test --workers=1 e2e/properties.spec.ts e2e/rooms.spec.ts e2e/tenants.spec.ts e2e/payments.spec.ts e2e/files.spec.ts",
     "test:e2e:properties": "playwright test e2e/properties.spec.ts",
     "test:e2e:rooms": "playwright test e2e/rooms.spec.ts",
     "test:e2e:tenants": "playwright test e2e/tenants.spec.ts",

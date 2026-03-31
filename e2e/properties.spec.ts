@@ -52,7 +52,6 @@ test("property CRUD flow creates, edits, validates, manages utility costs, and a
     await assertAppHealthy(page, monitor, "utility cost added");
 
     monitor.reset();
-    page.once("dialog", (dialog) => dialog.accept());
     await page.getByTitle("Delete").click();
     await expect(page.getByText("Internet · E2E ISP")).toHaveCount(0);
     await assertAppHealthy(page, monitor, "utility cost deleted");
