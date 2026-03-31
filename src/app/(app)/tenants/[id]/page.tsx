@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TopBar } from "@/components/layout/TopBar";
 import { TenantStatusBadge, PaymentStatusBadge, DepositStatusBadge } from "@/components/shared/StatusBadge";
+import { DocumentsSection } from "@/components/documents/DocumentsSection";
 import prisma from "@/lib/prisma";
 import { formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
 
@@ -12,7 +13,8 @@ export default async function TenantDetailPage({
 }) {
   const { id } = await params;
 
-  const tenant = await prisma.tenant.findUnique({
+  const [tenant, rawDocs] = await Promise.all([
+    prisma.tenant.findUnique({
     where: { id },
     include: {
       occupancies: {
@@ -27,9 +29,20 @@ export default async function TenantDetailPage({
         orderBy: { createdAt: "desc" },
       },
     },
-  });
+  }),
+    prisma.tenantDocument.findMany({
+      where: { tenantId: id },
+      select: { id: true, type: true, fileName: true, fileSize: true, uploadedAt: true },
+    }),
+  ]);
 
   if (!tenant) notFound();
+
+  // Build a map keyed by type — storageUrl is intentionally excluded
+  type DocType = "idDocument" | "workContract" | "salarySlip";
+  const documents = Object.fromEntries(
+    rawDocs.map((d) => [d.type, { id: d.id, fileName: d.fileName, fileSize: d.fileSize, uploadedAt: d.uploadedAt }])
+  ) as Partial<Record<DocType, { id: string; fileName: string; fileSize: number; uploadedAt: Date }>>;
 
   const activeOccupancy = tenant.occupancies.find((o) => o.status === "ACTIVE");
   const pastOccupancies = tenant.occupancies.filter((o) => o.status !== "ACTIVE");
@@ -170,6 +183,9 @@ export default async function TenantDetailPage({
             )}
           </div>
         </div>
+
+        {/* Documents */}
+        <DocumentsSection tenantId={id} initialDocuments={documents} />
 
         {/* Payment history */}
         {activeOccupancy && activeOccupancy.payments.length > 0 && (

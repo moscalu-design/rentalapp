@@ -114,8 +114,31 @@ model Tenant {
   updatedAt        DateTime  @updatedAt
 
   occupancies      Occupancy[]
-  tenantNotes      Note[]      @relation("TenantNotes")
-  activityLogs     ActivityLog[] @relation("TenantActivity")
+  tenantNotes      Note[]           @relation("TenantNotes")
+  activityLogs     ActivityLog[]    @relation("TenantActivity")
+  documents        TenantDocument[]
+}
+
+// Documents attached to a tenant — one record per document type
+// storageUrl is the Vercel Blob URL; it is NEVER sent to the client.
+// Clients access files through /api/documents/[id] which enforces auth.
+//
+//   DocumentType: idDocument | workContract | salarySlip
+//
+model TenantDocument {
+  id          String   @id @default(cuid())
+  tenantId    String
+  type        String   // idDocument | workContract | salarySlip
+  fileName    String
+  fileType    String   // MIME type: application/pdf | image/jpeg | image/png
+  fileSize    Int      // bytes
+  storageUrl  String   // Vercel Blob URL — internal only
+  uploadedAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, type])
 }
 
 model Occupancy {
