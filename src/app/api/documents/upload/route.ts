@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { put, del } from "@vercel/blob";
 import { auth } from "@/lib/auth";
+import {
+  deleteStoredDocument,
+  getStorageModeSummary,
+  storeDocument,
+} from "@/lib/documentStorage";
 import prisma from "@/lib/prisma";
 
 const ALLOWED_TYPES = new Set([
@@ -73,18 +77,19 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    let blob: Awaited<ReturnType<typeof put>>;
+    let storedFile: Awaited<ReturnType<typeof storeDocument>>;
     try {
-      blob = await put(blobPath, buffer, {
-        access: "public",
-        contentType: file.type,
-        addRandomSuffix: false,
-        allowOverwrite: true,
-      });
+      storedFile = await storeDocument(blobPath, buffer, file.type);
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
       const errType = err instanceof Error ? err.constructor.name : "Unknown";
-      console.error("[documents/upload] Blob storage error:", errType, errMsg, err);
+      console.error(
+        "[documents/upload] Storage error:",
+        errType,
+        errMsg,
+        { mode: getStorageModeSummary() },
+        err
+      );
       // Include detail in dev so we can diagnose; strip it in production
       const detail = process.env.NODE_ENV !== "production" ? ` (${errType}: ${errMsg})` : "";
       return NextResponse.json(
@@ -94,9 +99,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Delete old blob only if it was at a different URL (different extension)
-    if (existing && existing.storageUrl !== blob.url) {
+    if (existing && existing.storageUrl !== storedFile.url) {
       try {
-        await del(existing.storageUrl);
+        await deleteStoredDocument(existing.storageUrl);
       } catch {
         // Best-effort — don't fail the upload
       }
@@ -112,7 +117,7 @@ export async function POST(req: NextRequest) {
         fileName: file.name,
         fileType: file.type,
         fileSize: file.size,
-        storageUrl: blob.url,
+        storageUrl: storedFile.url,
         uploadedAt: now,
         updatedAt: now,
       },
@@ -120,7 +125,7 @@ export async function POST(req: NextRequest) {
         fileName: file.name,
         fileType: file.type,
         fileSize: file.size,
-        storageUrl: blob.url,
+        storageUrl: storedFile.url,
         uploadedAt: now,
         updatedAt: now,
       },

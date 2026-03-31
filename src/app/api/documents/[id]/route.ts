@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { readStoredDocument } from "@/lib/documentStorage";
 import prisma from "@/lib/prisma";
 
 export async function GET(
@@ -18,23 +19,19 @@ export async function GET(
     return NextResponse.json({ error: "Document not found." }, { status: 404 });
   }
 
-  // Fetch the blob from Vercel's CDN and proxy it — client never sees the storage URL
-  let blobRes: Response;
+  let fileBuffer: Buffer;
   try {
-    blobRes = await fetch(doc.storageUrl);
-  } catch {
+    fileBuffer = await readStoredDocument(doc.storageUrl);
+  } catch (error) {
+    console.error("[documents/get] Failed to read stored file:", error);
     return NextResponse.json({ error: "Failed to retrieve file." }, { status: 502 });
-  }
-
-  if (!blobRes.ok) {
-    return NextResponse.json({ error: "File not available." }, { status: 502 });
   }
 
   const disposition = req.nextUrl.searchParams.get("dl") === "1"
     ? `attachment; filename="${encodeURIComponent(doc.fileName)}"`
     : `inline; filename="${encodeURIComponent(doc.fileName)}"`;
 
-  return new NextResponse(blobRes.body, {
+  return new NextResponse(fileBuffer, {
     headers: {
       "Content-Type": doc.fileType,
       "Content-Disposition": disposition,

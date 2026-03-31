@@ -1,8 +1,8 @@
 "use server";
 
-import { del } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
+import { deleteStoredDocument } from "@/lib/documentStorage";
 import prisma from "@/lib/prisma";
 
 async function requireAuth() {
@@ -21,9 +21,9 @@ export async function deleteDocument(documentId: string): Promise<{ error?: stri
   if (!doc) return { error: "Document not found." };
 
   try {
-    await del(doc.storageUrl);
+    await deleteStoredDocument(doc.storageUrl);
   } catch {
-    // Blob may already be gone — continue to remove DB record
+    // File may already be gone — continue to remove DB record
   }
 
   await prisma.tenantDocument.delete({ where: { id: documentId } });
