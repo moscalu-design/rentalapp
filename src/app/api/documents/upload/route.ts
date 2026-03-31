@@ -82,9 +82,13 @@ export async function POST(req: NextRequest) {
         allowOverwrite: true,
       });
     } catch (err) {
-      console.error("[documents/upload] Blob storage error:", err);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      const errType = err instanceof Error ? err.constructor.name : "Unknown";
+      console.error("[documents/upload] Blob storage error:", errType, errMsg, err);
+      // Include detail in dev so we can diagnose; strip it in production
+      const detail = process.env.NODE_ENV !== "production" ? ` (${errType}: ${errMsg})` : "";
       return NextResponse.json(
-        { error: "File storage unavailable. Please try again later." },
+        { error: `File storage unavailable. Please try again later.${detail}` },
         { status: 502 }
       );
     }
