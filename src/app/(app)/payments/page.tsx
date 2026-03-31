@@ -15,8 +15,10 @@ async function getPaymentsData(year: number, month: number) {
         },
       },
     },
-    orderBy: [{ status: "asc" }, { occupancy: { tenant: { firstName: "asc" } } }],
+    orderBy: [{ status: "asc" }],
   });
+
+  payments.sort((a, b) => a.occupancy.tenant.firstName.localeCompare(b.occupancy.tenant.firstName));
 
   const totalDue = payments.reduce((sum, p) => sum + p.amountDue, 0);
   const totalPaid = payments.reduce((sum, p) => sum + p.amountPaid, 0);
