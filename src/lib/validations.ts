@@ -123,6 +123,27 @@ export const PropertyExpenseSchema = z.object({
 
 export type PropertyExpenseInput = z.infer<typeof PropertyExpenseSchema>;
 
+// ─── Mortgage ─────────────────────────────────────────────────────────────────
+
+export const MortgageSchema = z.object({
+  label: z.string().max(100).optional().or(z.literal("")),
+  lender: z.string().max(100).optional().or(z.literal("")),
+  startDate: z.string().min(1, "Start date is required"),
+  termMonths: z.coerce
+    .number()
+    .int()
+    .min(1, "Term must be at least 1 month")
+    .max(600, "Term must be 600 months or less"),
+  initialBalance: z.coerce.number().min(1, "Balance must be greater than 0"),
+  interestRate: z.coerce
+    .number()
+    .min(0, "Rate must be 0 or more")
+    .max(100, "Rate must be under 100%"),
+  monthlyPayment: z.coerce.number().min(1, "Monthly payment must be greater than 0"),
+});
+
+export type MortgageInput = z.infer<typeof MortgageSchema>;
+
 // ─── Deposit transaction ──────────────────────────────────────────────────────
 
 export const DepositTransactionSchema = z.object({

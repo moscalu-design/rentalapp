@@ -59,6 +59,7 @@ model Property {
 
   rooms         Room[]
   expenses      PropertyExpense[]
+  mortgages     Mortgage[]
   propertyNotes Note[]           @relation("PropertyNotes")
   activityLogs  ActivityLog[]    @relation("PropertyActivity")
 }
@@ -268,6 +269,30 @@ model Note {
   room       Room?     @relation("RoomNotes", fields: [roomId], references: [id], onDelete: Cascade)
   tenant     Tenant?   @relation("TenantNotes", fields: [tenantId], references: [id], onDelete: Cascade)
   payment    Payment?  @relation("PaymentNotes", fields: [paymentId], references: [id], onDelete: Cascade)
+}
+
+// Mortgage tracking for a property.
+// Amortization is calculated dynamically — nothing is stored beyond these fields.
+// startDate = first payment date; balance at startDate = initialBalance.
+// termMonths defines the end date: endDate = startDate + termMonths months.
+model Mortgage {
+  id             String   @id @default(cuid())
+  propertyId     String
+  property       Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  label          String?  // e.g. "Main Mortgage", "Second Charge"
+  lender         String?  // e.g. "Nationwide", "Halifax"
+
+  startDate      DateTime // First payment date — amortization begins here
+  termMonths     Int      // Total term in months from startDate
+  initialBalance Float    // Loan balance at startDate
+  interestRate   Float    // Annual interest rate as a percentage (e.g. 3.5)
+  monthlyPayment Float    // Fixed monthly payment amount
+
+  isActive       Boolean  @default(true)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 // Lightweight audit trail — records major system events

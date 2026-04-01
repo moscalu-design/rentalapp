@@ -1,3 +1,5 @@
+import { isMortgageActiveInMonth, type MortgageRecord } from "@/lib/mortgage";
+
 export type ChartMonth = {
   label: string;
   costs: number;
@@ -11,7 +13,8 @@ const MONTH_SHORT = [
 
 export function buildChartData(
   expenses: Array<{ reportingYear: number; reportingMonth: number; amount: number }>,
-  payments: Array<{ periodYear: number; periodMonth: number; amountDue: number }>
+  payments: Array<{ periodYear: number; periodMonth: number; amountDue: number }>,
+  mortgages: MortgageRecord[] = []
 ): ChartMonth[] {
   const now = new Date();
 
@@ -20,13 +23,19 @@ export function buildChartData(
     const year = d.getFullYear();
     const month = d.getMonth() + 1;
 
-    const costs = expenses
-      .filter((expense) => expense.reportingYear === year && expense.reportingMonth === month)
-      .reduce((sum, expense) => sum + expense.amount, 0);
+    const expenseCosts = expenses
+      .filter((e) => e.reportingYear === year && e.reportingMonth === month)
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    const mortgageCosts = mortgages
+      .filter((m) => isMortgageActiveInMonth(m, year, month))
+      .reduce((sum, m) => sum + m.monthlyPayment, 0);
+
+    const costs = expenseCosts + mortgageCosts;
 
     const income = payments
-      .filter((payment) => payment.periodYear === year && payment.periodMonth === month)
-      .reduce((sum, payment) => sum + payment.amountDue, 0);
+      .filter((p) => p.periodYear === year && p.periodMonth === month)
+      .reduce((sum, p) => sum + p.amountDue, 0);
 
     return {
       label: MONTH_SHORT[month - 1],
