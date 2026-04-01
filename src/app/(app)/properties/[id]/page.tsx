@@ -2,12 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TopBar } from "@/components/layout/TopBar";
 import { ArchivePropertyForm } from "@/components/properties/ArchivePropertyForm";
-import { MortgagesSection } from "@/components/properties/MortgagesSection";
 import { PropertyExpensesSection } from "@/components/properties/PropertyExpensesSection";
+import { PropertyMortgageSummary } from "@/components/properties/PropertyMortgageSummary";
 import { PropertyPerformanceChart } from "@/components/properties/PropertyPerformanceChart";
+import { PropertySubnav } from "@/components/properties/PropertySubnav";
 import { buildChartData } from "@/components/properties/propertyPerformanceData";
 import { RoomStatusBadge } from "@/components/shared/StatusBadge";
-import { isMortgageActiveInMonth } from "@/lib/mortgage";
+import { getMonthlyCostForMonth } from "@/lib/mortgage";
 import prisma from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -54,6 +55,11 @@ export default async function PropertyDetailPage({
           ],
         },
         mortgages: {
+          include: {
+            prepayments: {
+              orderBy: { startDate: "asc" },
+            },
+          },
           orderBy: { createdAt: "asc" },
         },
       },
@@ -85,8 +91,7 @@ export default async function PropertyDetailPage({
     .reduce((sum, e) => sum + e.amount, 0);
 
   const monthlyMortgages = property.mortgages
-    .filter((m) => isMortgageActiveInMonth(m, thisYear, thisMonth))
-    .reduce((sum, m) => sum + m.monthlyPayment, 0);
+    .reduce((sum, mortgage) => sum + getMonthlyCostForMonth(mortgage, thisYear, thisMonth), 0);
 
   // Monthly profit = income - costs (expenses + mortgages)
   const monthlyProfit = monthlyIncome - monthlyExpenses - monthlyMortgages;
@@ -113,6 +118,7 @@ export default async function PropertyDetailPage({
       />
 
       <div className="flex-1 p-6 space-y-6">
+        <PropertySubnav propertyId={id} active="overview" />
 
         {/* ── Summary cards ─────────────────────────────────────────────── */}
         <div data-testid="property-summary-cards" className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -152,16 +158,18 @@ export default async function PropertyDetailPage({
         </div>
 
         {/* ── Financial performance chart ────────────────────────────────── */}
-        <PropertyPerformanceChart data={chartData} />
+        <div id="financials">
+          <PropertyPerformanceChart data={chartData} />
+        </div>
 
         {/* ── Mortgages ─────────────────────────────────────────────────── */}
-        <MortgagesSection propertyId={id} mortgages={property.mortgages} />
+        <PropertyMortgageSummary propertyId={id} mortgages={property.mortgages} />
 
         {/* ── Utilities & Costs ─────────────────────────────────────────── */}
         <PropertyExpensesSection propertyId={id} expenses={property.expenses} />
 
         {/* ── Rooms ─────────────────────────────────────────────────────── */}
-        <div data-testid="property-rooms-section" className="space-y-3">
+        <div id="rooms" data-testid="property-rooms-section" className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-slate-800">Rooms</h2>
             <Link

@@ -282,6 +282,8 @@ model Mortgage {
 
   label          String?  // e.g. "Main Mortgage", "Second Charge"
   lender         String?  // e.g. "Nationwide", "Halifax"
+  notes          String?
+  type           String   @default("amortizing") // amortizing | bullet
 
   startDate      DateTime // First payment date — amortization begins here
   termMonths     Int      // Total term in months from startDate
@@ -290,9 +292,27 @@ model Mortgage {
   monthlyPayment Float    // Fixed monthly payment amount
 
   isActive       Boolean  @default(true)
+  prepayments    MortgagePrepayment[]
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model MortgagePrepayment {
+  id         String   @id @default(cuid())
+  mortgageId String
+  mortgage   Mortgage @relation(fields: [mortgageId], references: [id], onDelete: Cascade)
+
+  type       String   // one_off | recurring
+  amount     Float
+  startDate  DateTime
+  endDate    DateTime?
+  frequency  String?  // monthly
+  isActive   Boolean  @default(true)
+  notes      String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 // Lightweight audit trail — records major system events

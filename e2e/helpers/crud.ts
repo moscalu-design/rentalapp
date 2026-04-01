@@ -41,7 +41,14 @@ export async function createProperty(page: Page, overrides?: Partial<{
   await page.locator('textarea[name="notes"]').fill(notes);
   await page.getByRole("button", { name: "Create Property" }).click();
 
-  await expect(page.getByRole("heading", { name })).toBeVisible();
+  await expect(page).toHaveURL(/\/properties\/[^/]+$/, { timeout: 15_000 });
+  await page.waitForLoadState("networkidle");
+  await expect
+    .poll(async () => {
+      const headingText = await page.locator("h1").first().textContent();
+      return headingText?.trim() ?? "";
+    }, { timeout: 15_000 })
+    .toBe(name);
 
   return {
     id: pathId(new URL(page.url()).pathname),
@@ -82,7 +89,14 @@ export async function createRoom(page: Page, propertyId: string, overrides?: Par
   await page.locator('textarea[name="notes"]').fill(notes);
   await page.getByRole("button", { name: "Create Room" }).click();
 
-  await expect(page.getByRole("heading", { name })).toBeVisible();
+  await expect(page).toHaveURL(/\/rooms\/[^/]+$/, { timeout: 15_000 });
+  await page.waitForLoadState("networkidle");
+  await expect
+    .poll(async () => {
+      const headingText = await page.locator("h1").first().textContent();
+      return headingText?.trim() ?? "";
+    }, { timeout: 15_000 })
+    .toBe(name);
 
   return {
     id: pathId(new URL(page.url()).pathname),

@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { PropertySchema, RoomSchema, TenantSchema, OccupancySchema, PaymentSchema } from "../validations";
+import {
+  MortgagePrepaymentSchema,
+  MortgageSchema,
+  OccupancySchema,
+  PaymentSchema,
+  PropertySchema,
+  RoomSchema,
+  TenantSchema,
+} from "../validations";
 
 // ─── PropertySchema ───────────────────────────────────────────────────────────
 
@@ -167,5 +175,74 @@ describe("PaymentSchema", () => {
     expect(() =>
       PaymentSchema.parse({ amountPaid: 100, paymentMethod: "CRYPTO" })
     ).toThrow();
+  });
+});
+
+// ─── MortgageSchema ───────────────────────────────────────────────────────────
+
+describe("MortgageSchema", () => {
+  const valid = {
+    label: "Main Mortgage",
+    type: "amortizing",
+    startDate: "2026-01-01",
+    termMonths: 240,
+    initialBalance: 200000,
+    interestRate: 3.125,
+  };
+
+  it("accepts a valid amortizing mortgage", () => {
+    expect(() => MortgageSchema.parse(valid)).not.toThrow();
+  });
+
+  it("accepts a bullet mortgage", () => {
+    expect(() => MortgageSchema.parse({ ...valid, type: "bullet" })).not.toThrow();
+  });
+
+  it("rejects missing mortgage name", () => {
+    expect(() => MortgageSchema.parse({ ...valid, label: "" })).toThrow();
+  });
+
+  it("accepts up to five decimal places for interest rate", () => {
+    expect(() => MortgageSchema.parse({ ...valid, interestRate: 3.12345 })).not.toThrow();
+  });
+
+  it("rejects more than five decimal places for interest rate", () => {
+    expect(() => MortgageSchema.parse({ ...valid, interestRate: 3.123456 })).toThrow();
+  });
+});
+
+describe("MortgagePrepaymentSchema", () => {
+  const valid = {
+    type: "recurring",
+    amount: 250,
+    startDate: "2026-06-01",
+    endDate: "2026-12-01",
+    frequency: "monthly",
+  };
+
+  it("accepts a valid recurring prepayment plan", () => {
+    expect(() => MortgagePrepaymentSchema.parse(valid)).not.toThrow();
+  });
+
+  it("accepts a valid one-off prepayment", () => {
+    expect(() =>
+      MortgagePrepaymentSchema.parse({
+        type: "one_off",
+        amount: 1000,
+        startDate: "2026-09-01",
+      })
+    ).not.toThrow();
+  });
+
+  it("rejects a recurring prepayment without monthly frequency", () => {
+    expect(() =>
+      MortgagePrepaymentSchema.parse({ ...valid, frequency: undefined })
+    ).toThrow();
+  });
+
+  it("rejects end dates before the start date", () => {
+    expect(() =>
+      MortgagePrepaymentSchema.parse({ ...valid, endDate: "2026-05-01" })
+    ).toThrow("End date must be on or after the start date");
   });
 });

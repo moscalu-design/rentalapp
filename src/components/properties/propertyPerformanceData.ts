@@ -1,4 +1,4 @@
-import { isMortgageActiveInMonth, type MortgageRecord } from "@/lib/mortgage";
+import { getMonthlyCostForMonth, type MortgageRecord } from "@/lib/mortgage";
 
 export type ChartMonth = {
   label: string;
@@ -28,8 +28,7 @@ export function buildChartData(
       .reduce((sum, e) => sum + e.amount, 0);
 
     const mortgageCosts = mortgages
-      .filter((m) => isMortgageActiveInMonth(m, year, month))
-      .reduce((sum, m) => sum + m.monthlyPayment, 0);
+      .reduce((sum, mortgage) => sum + getMonthlyCostForMonth(mortgage, year, month), 0);
 
     const costs = expenseCosts + mortgageCosts;
 

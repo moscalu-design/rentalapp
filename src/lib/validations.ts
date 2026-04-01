@@ -125,9 +125,19 @@ export type PropertyExpenseInput = z.infer<typeof PropertyExpenseSchema>;
 
 // ─── Mortgage ─────────────────────────────────────────────────────────────────
 
+export const MORTGAGE_TYPES = ["amortizing", "bullet"] as const;
+export const MORTGAGE_PREPAYMENT_TYPES = ["one_off", "recurring"] as const;
+export const MORTGAGE_PREPAYMENT_FREQUENCIES = ["monthly"] as const;
+
+function hasAtMostFiveDecimals(value: number) {
+  return Number.isInteger(value * 100000);
+}
+
 export const MortgageSchema = z.object({
-  label: z.string().max(100).optional().or(z.literal("")),
+  label: z.string().trim().min(1, "Mortgage name is required").max(100),
   lender: z.string().max(100).optional().or(z.literal("")),
+  notes: z.string().max(2000).optional().or(z.literal("")),
+  type: z.enum(MORTGAGE_TYPES).default("amortizing"),
   startDate: z.string().min(1, "Start date is required"),
   termMonths: z.coerce
     .number()
@@ -138,11 +148,40 @@ export const MortgageSchema = z.object({
   interestRate: z.coerce
     .number()
     .min(0, "Rate must be 0 or more")
-    .max(100, "Rate must be under 100%"),
-  monthlyPayment: z.coerce.number().min(1, "Monthly payment must be greater than 0"),
+    .max(100, "Rate must be under 100%")
+    .refine(hasAtMostFiveDecimals, "Rate can have at most 5 decimal places"),
 });
 
 export type MortgageInput = z.infer<typeof MortgageSchema>;
+
+export const MortgagePrepaymentSchema = z
+  .object({
+    type: z.enum(MORTGAGE_PREPAYMENT_TYPES),
+    amount: z.coerce.number().positive("Prepayment amount must be greater than 0"),
+    startDate: z.string().min(1, "Start date is required"),
+    endDate: z.string().optional().or(z.literal("")),
+    frequency: z.enum(MORTGAGE_PREPAYMENT_FREQUENCIES).optional().nullable(),
+    notes: z.string().max(2000).optional().or(z.literal("")),
+  })
+  .superRefine((data, ctx) => {
+    if (data.type === "recurring" && data.frequency !== "monthly") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Recurring prepayments currently support monthly frequency only",
+        path: ["frequency"],
+      });
+    }
+
+    if (data.endDate && new Date(data.endDate) < new Date(data.startDate)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "End date must be on or after the start date",
+        path: ["endDate"],
+      });
+    }
+  });
+
+export type MortgagePrepaymentInput = z.infer<typeof MortgagePrepaymentSchema>;
 
 // ─── Deposit transaction ──────────────────────────────────────────────────────
 
