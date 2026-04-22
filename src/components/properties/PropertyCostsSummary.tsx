@@ -38,7 +38,7 @@ function todayStr(): string {
 
 // ─── Quick Add Modal ──────────────────────────────────────────────────────────
 
-function QuickAddModal({
+export function QuickAddCostModal({
   propertyId,
   onClose,
 }: {
@@ -67,6 +67,9 @@ function QuickAddModal({
       const startDate = fd.get("startDate") as string;
       fd.set("paymentDate", startDate);
       fd.set("coverageStart", startDate);
+      const reportingDate = new Date(startDate);
+      fd.set("reportingYear", String(reportingDate.getFullYear()));
+      fd.set("reportingMonth", String(reportingDate.getMonth() + 1));
       const endDate = fd.get("endDate") as string;
       if (endDate) fd.set("coverageEnd", endDate);
     } else {
@@ -87,6 +90,7 @@ function QuickAddModal({
 
   return (
     <div
+      data-testid="quick-add-cost-modal"
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/50 p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
@@ -243,6 +247,35 @@ function QuickAddModal({
   );
 }
 
+export function QuickAddCostButton({
+  propertyId,
+  label = "+ Quick Add Cost",
+  className = "w-full text-sm font-medium text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 rounded-lg py-2 transition-colors",
+}: {
+  propertyId: string;
+  label?: string;
+  className?: string;
+}) {
+  const [showModal, setShowModal] = useState(false);
+
+  return (
+    <>
+      <button
+        type="button"
+        data-testid="quick-add-cost-button"
+        onClick={() => setShowModal(true)}
+        className={className}
+      >
+        {label}
+      </button>
+
+      {showModal && (
+        <QuickAddCostModal propertyId={propertyId} onClose={() => setShowModal(false)} />
+      )}
+    </>
+  );
+}
+
 // ─── Main summary ─────────────────────────────────────────────────────────────
 
 export function PropertyCostsSummary({
@@ -252,8 +285,6 @@ export function PropertyCostsSummary({
   propertyId: string;
   expenses: Expense[];
 }) {
-  const [showModal, setShowModal] = useState(false);
-
   const now = new Date();
   const thisYear = now.getFullYear();
   const thisMonth = now.getMonth() + 1;
@@ -293,17 +324,8 @@ export function PropertyCostsSummary({
           </div>
         </div>
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="w-full text-sm font-medium text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 rounded-lg py-2 transition-colors"
-        >
-          + Quick Add Cost
-        </button>
+        <QuickAddCostButton propertyId={propertyId} />
       </div>
-
-      {showModal && (
-        <QuickAddModal propertyId={propertyId} onClose={() => setShowModal(false)} />
-      )}
     </>
   );
 }

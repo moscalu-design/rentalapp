@@ -70,9 +70,10 @@ test("payment flow creates relationship-backed payments and records updates safe
     if (roomUrl) {
       monitor.reset();
       await page.goto(roomUrl, { waitUntil: "networkidle" });
-      if (await page.getByRole("button", { name: "End Tenancy" }).count()) {
-        page.once("dialog", (dialog) => dialog.accept());
-        await page.getByRole("button", { name: "End Tenancy" }).click();
+      if (await page.getByTestId("end-tenancy-btn").count()) {
+        await page.getByTestId("end-tenancy-btn").click();
+        await expect(page.getByTestId("end-tenancy-modal")).toBeVisible();
+        await page.getByTestId("confirm-end-tenancy-btn").click();
         await expect(page.getByRole("heading", { name: "Assign Tenant" })).toBeVisible();
       }
       await assertAppHealthy(page, monitor, "tenancy ended for cleanup");

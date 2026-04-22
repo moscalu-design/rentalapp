@@ -213,8 +213,9 @@ test("room tenancy, deposit, tenant navigation, and contract workflow stay consi
     refundDue.setDate(refundDue.getDate() + 30);
 
     monitor.reset();
-    page.once("dialog", (dialog) => dialog.accept());
-    await page.getByRole("button", { name: "End Tenancy" }).click();
+    await page.getByTestId("end-tenancy-btn").click();
+    await expect(page.getByTestId("end-tenancy-modal")).toBeVisible();
+    await page.getByTestId("confirm-end-tenancy-btn").click();
     await expect(page.getByTestId("room-vacant-state")).toContainText("No current tenant assigned");
     const warning = page.getByTestId("deposit-refund-warning");
     await expect(warning).toContainText("Deposit return");

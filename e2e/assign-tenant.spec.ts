@@ -28,8 +28,9 @@ test("assign-tenant flow works on a vacant fixture room and can be undone", asyn
   await assertAppHealthy(page, monitor, `room detail after assign ${roomPath}`);
 
   monitor.reset();
-  page.once("dialog", (dialog) => dialog.accept());
-  await page.getByRole("button", { name: "End Tenancy" }).click();
+  await page.getByTestId("end-tenancy-btn").click();
+  await expect(page.getByTestId("end-tenancy-modal")).toBeVisible();
+  await page.getByTestId("confirm-end-tenancy-btn").click();
   await page.waitForLoadState("networkidle");
   await expect(page.getByRole("heading", { name: "Assign Tenant" })).toBeVisible();
   await assertAppHealthy(page, monitor, `room detail after end tenancy ${roomPath}`);

@@ -55,6 +55,7 @@ export default async function RoomDetailPage({
         amountDue: payment.amountDue,
         amountPaid: payment.amountPaid,
         paidAt: payment.paidAt,
+        dueDate: payment.dueDate,
         paymentMethod: payment.paymentMethod,
         status: payment.status,
       }))
@@ -89,6 +90,12 @@ export default async function RoomDetailPage({
             {!activeOccupancy && (
               <DeleteRoomForm roomId={id} propertyId={room.propertyId} />
             )}
+            <Link
+              href={`/rooms/${id}/inventory`}
+              className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              Inventory
+            </Link>
             <Link
               href={`/rooms/${id}/edit`}
               className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"

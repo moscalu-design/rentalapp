@@ -208,7 +208,7 @@ function getDefaultPrepaymentFormState(
 
 function getDefaultSimulationState(mortgage: Mortgage): SimulationFormState {
   return {
-    mode: "higher_payment",
+    mode: "recurring_extra",
     startDate: todayString(),
     endDate: "",
     higherMonthlyPayment: String(Math.round((mortgage.monthlyPayment + 100) * 100) / 100),
@@ -855,9 +855,9 @@ function SimulationPanel({
             onChange={(e) => onChange("mode", e.target.value)}
             className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="higher_payment">Higher monthly payment</option>
-            <option value="lump_sum">One-off lump sum</option>
             <option value="recurring_extra">Recurring extra prepayment</option>
+            <option value="lump_sum">One-off lump sum prepayment</option>
+            <option value="higher_payment">Higher total monthly payment</option>
           </select>
         </div>
         <div>
@@ -1043,7 +1043,7 @@ function SimulationPanel({
               type="button"
               onClick={applySimulation}
               disabled={applying}
-              className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 shadow-sm"
             >
               {applying ? "Applying…" : "Apply as Actual Prepayment Plan"}
             </button>
@@ -1290,9 +1290,9 @@ function MortgageDetailsModal({
             </button>
             <button
               onClick={onEdit}
-              className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              className="text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors shadow-sm"
             >
-              Edit
+              Edit Mortgage
             </button>
             <button
               onClick={onClose}
@@ -1367,18 +1367,15 @@ function MortgageDetailsModal({
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={onEdit}
-              className="text-xs text-blue-600 hover:text-blue-700 font-medium border border-blue-200 rounded-lg px-3 py-2"
-            >
-              Edit Mortgage
-            </button>
-            <button
-              type="button"
               data-testid="open-simulation-button"
               onClick={() => setShowSimulation((current) => !current)}
-              className="text-xs text-slate-700 hover:text-slate-900 font-medium border border-slate-200 rounded-lg px-3 py-2"
+              className={`text-xs font-medium rounded-lg px-3 py-2 transition-colors ${
+                showSimulation
+                  ? "border border-blue-200 bg-blue-50 text-blue-700 shadow-sm"
+                  : "border border-slate-200 text-slate-700 hover:text-slate-900"
+              }`}
             >
-              {showSimulation ? "Hide Simulation" : "Run Simulation"}
+              {showSimulation ? "Simulation On" : "Run Simulation"}
             </button>
             <button
               type="button"
@@ -1387,7 +1384,7 @@ function MortgageDetailsModal({
                 setEditingPrepayment(undefined);
                 setShowPrepaymentModal(true);
               }}
-              className="text-xs text-slate-700 hover:text-slate-900 font-medium border border-slate-200 rounded-lg px-3 py-2"
+              className="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 rounded-lg px-3 py-2 transition-colors shadow-sm"
             >
               Record Prepayment
             </button>

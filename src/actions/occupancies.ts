@@ -119,10 +119,14 @@ export async function createOccupancy(formData: FormData) {
   redirect(`/rooms/${validated.roomId}`);
 }
 
-export async function endOccupancy(occupancyId: string, _formData?: FormData) {
+export async function endOccupancy(occupancyId: string, formData?: FormData) {
   const user = await requireAuth();
 
-  const moveOutDate = new Date();
+  const rawDate = formData?.get("moveOutDate");
+  const moveOutDate =
+    rawDate && typeof rawDate === "string" && rawDate.length > 0
+      ? new Date(rawDate)
+      : new Date();
   const refundDueDate = new Date(moveOutDate);
   refundDueDate.setDate(refundDueDate.getDate() + 30);
 

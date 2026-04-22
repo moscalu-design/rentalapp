@@ -183,6 +183,59 @@ export const MortgagePrepaymentSchema = z
 
 export type MortgagePrepaymentInput = z.infer<typeof MortgagePrepaymentSchema>;
 
+// ─── Inventory ────────────────────────────────────────────────────────────────
+
+export const INVENTORY_CATEGORIES = [
+  "FURNITURE",
+  "APPLIANCE",
+  "FIXTURE",
+  "BEDDING",
+  "ELECTRONICS",
+  "KITCHEN",
+  "BATHROOM",
+  "OTHER",
+] as const;
+
+export const INVENTORY_CONDITIONS = [
+  "NEW",
+  "GOOD",
+  "FAIR",
+  "WORN",
+  "DAMAGED",
+  "MISSING",
+] as const;
+
+export const INSPECTION_TYPES = ["CHECK_IN", "CHECK_OUT"] as const;
+
+export const InventoryItemSchema = z.object({
+  name: z.string().min(1, "Name is required").max(200),
+  category: z.enum(INVENTORY_CATEGORIES).default("FURNITURE"),
+  quantity: z.coerce.number().int().min(1).default(1),
+  estimatedValue: z.coerce.number().min(0).optional().nullable(),
+  notes: z.string().max(2000).optional().or(z.literal("")),
+  sortOrder: z.coerce.number().int().default(0),
+});
+
+export type InventoryItemInput = z.infer<typeof InventoryItemSchema>;
+
+export const InventoryInspectionSchema = z.object({
+  type: z.enum(INSPECTION_TYPES),
+  date: z.string().min(1, "Date is required"),
+  notes: z.string().max(2000).optional().or(z.literal("")),
+});
+
+export type InventoryInspectionInput = z.infer<typeof InventoryInspectionSchema>;
+
+export const InventoryInspectionItemSchema = z.object({
+  inventoryItemId: z.string().min(1),
+  itemName: z.string().min(1),
+  condition: z.enum(INVENTORY_CONDITIONS),
+  quantity: z.coerce.number().int().min(1).default(1),
+  notes: z.string().max(2000).optional().or(z.literal("")),
+});
+
+export type InventoryInspectionItemInput = z.infer<typeof InventoryInspectionItemSchema>;
+
 // ─── Deposit transaction ──────────────────────────────────────────────────────
 
 export const DepositTransactionSchema = z.object({

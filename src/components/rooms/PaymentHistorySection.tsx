@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { PaymentStatusBadge } from "@/components/shared/StatusBadge";
-import { formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
+import { computePaymentStatus, formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
 
 const PAGE_SIZE = 5;
 
@@ -14,6 +14,7 @@ export interface RoomPaymentHistoryRow {
   amountDue: number;
   amountPaid: number;
   paidAt: Date | string | null;
+  dueDate: Date | string;
   paymentMethod: string | null;
   status: string;
 }
@@ -96,7 +97,7 @@ export function PaymentHistorySection({
                       {payment.paymentMethod?.replaceAll("_", " ") ?? "—"}
                     </td>
                     <td className="px-5 py-3">
-                      <PaymentStatusBadge status={payment.status} size="sm" />
+                      <PaymentStatusBadge status={computePaymentStatus(payment)} size="sm" />
                     </td>
                   </tr>
                 ))}

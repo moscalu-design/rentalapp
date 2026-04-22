@@ -12,9 +12,7 @@ function parseEuroAmount(value: string) {
   return Number(match[0].replace("€", "").replaceAll(",", ""));
 }
 
-test("redesigned property page renders euro financials, profit, chart, and stable section order", async ({
-  page,
-}) => {
+test("overview and costs routes support quick add and stay in sync", async ({ page }) => {
   test.setTimeout(120_000);
   requireDestructive();
 
@@ -26,7 +24,7 @@ test("redesigned property page renders euro financials, profit, chart, and stabl
 
   const property = await createProperty(page, {
     name: `E2E Property Page ${Date.now()}`,
-    notes: "property page redesign fixture",
+    notes: "property overview and costs fixture",
   });
   propertyUrl = property.url;
 
@@ -43,64 +41,71 @@ test("redesigned property page renders euro financials, profit, chart, and stabl
     await expect(page.getByTestId("property-summary-cards")).toBeVisible();
     await expect(page.getByTestId("property-summary-income")).toContainText("€0");
     await expect(page.getByTestId("property-summary-profit")).toContainText("€0");
-    await expect(page.getByTestId("property-summary-profit")).toContainText("Monthly Profit");
-    await expect(page.getByText("Occupied", { exact: true })).toHaveCount(0);
-    await expect(page.getByRole("heading", { name: "Notes" })).toHaveCount(0);
     await expect(page.getByTestId("property-performance-chart-empty")).toBeVisible();
-    await expect(page.getByTestId("property-expenses-section")).toBeVisible();
+    await expect(page.getByTestId("property-mortgage-summary")).toBeVisible();
+    await expect(page.getByTestId("property-costs-summary")).toBeVisible();
+    await expect(page.getByTestId("quick-add-cost-button")).toBeVisible();
     await expect(page.getByTestId("property-rooms-section")).toBeVisible();
-    await expect(page.locator("body")).not.toContainText("£");
     await expect(page.locator(`[data-testid="room-link"][href="/rooms/${room.id}"]`)).toContainText("€1,234");
-    await assertAppHealthy(page, monitor, "property page renders before costs");
+    await assertAppHealthy(page, monitor, "overview renders before costs");
 
     const summaryY = await page.getByTestId("property-summary-cards").evaluate((node) => node.getBoundingClientRect().top);
     const chartY = await page
       .locator('[data-testid="property-performance-chart"], [data-testid="property-performance-chart-empty"]')
       .evaluate((node) => node.getBoundingClientRect().top);
-    const expensesY = await page.getByTestId("property-expenses-section").evaluate((node) => node.getBoundingClientRect().top);
+    const mortgageY = await page.getByTestId("property-mortgage-summary").evaluate((node) => node.getBoundingClientRect().top);
+    const costsY = await page.getByTestId("property-costs-summary").evaluate((node) => node.getBoundingClientRect().top);
     const roomsY = await page.getByTestId("property-rooms-section").evaluate((node) => node.getBoundingClientRect().top);
     expect(summaryY).toBeLessThan(chartY);
-    expect(chartY).toBeLessThan(expensesY);
-    expect(expensesY).toBeLessThan(roomsY);
+    expect(chartY).toBeLessThan(mortgageY);
+    expect(mortgageY).toBeLessThan(costsY);
+    expect(costsY).toBeLessThan(roomsY);
 
     monitor.reset();
-    await page.getByTestId("expense-add-toggle").click();
-    await expect(page.getByTestId("expense-form")).toBeVisible();
-    await expect(page.getByText("Amount (€)", { exact: false })).toBeVisible();
-    const title = `E2E Insurance ${Date.now()}`;
-    await page.getByTestId("expense-title-input").fill(title);
-    await page.getByTestId("expense-category-select").selectOption("INSURANCE");
-    await page.getByTestId("expense-amount-input").fill("42");
-    await page.getByTestId("expense-payment-date-input").fill("2026-04-01");
-    await page.getByTestId("expense-reporting-month-select").selectOption("4");
-    await page.getByTestId("expense-reporting-year-select").selectOption("2026");
-    await page.getByTestId("expense-add-button").click();
-    await expect(page.getByTestId("expense-form")).toHaveCount(0);
-    await expect(page.locator("body")).not.toContainText("£");
-    await assertAppHealthy(page, monitor, "property page after cost creation");
+    await page.getByRole("link", { name: "Costs" }).click();
+    await expect(page).toHaveURL(new RegExp(`/properties/${property.id}/costs$`));
+    await expect(page.getByTestId("costs-empty-helper")).toBeVisible();
+    await expect(page.getByTestId("quick-add-cost-button")).toBeVisible();
+    await assertAppHealthy(page, monitor, "costs page empty state renders");
+
+    monitor.reset();
+    await page.getByRole("link", { name: "Overview" }).click();
+    await expect(page).toHaveURL(new RegExp(`/properties/${property.id}$`));
+    await page.getByTestId("quick-add-cost-button").click();
+    await expect(page.getByTestId("quick-add-cost-modal")).toBeVisible();
+    await page.locator('[data-testid="quick-add-cost-modal"] input[name="amount"]').fill("42");
+    await page.locator('[data-testid="quick-add-cost-modal"] input[name="paymentDate"]').fill("2026-04-01");
+    await page.locator('[data-testid="quick-add-cost-modal"] button[type="submit"]').click();
+    await expect(page.getByTestId("property-summary-profit-value")).toContainText("-");
+    await assertAppHealthy(page, monitor, "overview quick add works");
 
     await expect
       .poll(async () => parseEuroAmount(await page.getByTestId("property-summary-profit-value").innerText()))
       .toBe(-42);
 
-    const chart = page.getByTestId("property-performance-chart");
-    await expect(chart).toBeVisible();
-    await expect(page.getByTestId("property-performance-chart-legend")).toContainText("Costs");
-    await expect(page.getByTestId("property-performance-chart-legend")).toContainText("Profit");
-    await expect(chart.locator("svg")).toBeVisible();
-    await expect(page.getByTestId("expense-month-group-2026-04")).toContainText("€42");
+    monitor.reset();
+    await page.getByRole("link", { name: "Costs" }).click();
+    await expect(page).toHaveURL(new RegExp(`/properties/${property.id}/costs$`));
+    await expect(page.getByTestId("quick-add-cost-button")).toBeVisible();
+    await expect(page.getByTestId("property-expenses-section")).toContainText("€42");
+    await assertAppHealthy(page, monitor, "costs page shows overview quick add entry result");
+
+    monitor.reset();
+    await page.getByTestId("quick-add-cost-button").click();
+    const quickAdd = page.getByTestId("quick-add-cost-modal");
+    await expect(quickAdd).toBeVisible();
+    await quickAdd.getByRole("button", { name: "Monthly recurring" }).click();
+    await quickAdd.locator('input[name="amount"]').fill("75");
+    await quickAdd.locator('input[name="startDate"]').fill("2026-04-01");
+    await quickAdd.locator('button[type="submit"]').click();
+    await expect(page.getByTestId("property-expenses-section")).toContainText("€75");
+    await assertAppHealthy(page, monitor, "costs page quick add supports recurring costs");
 
     monitor.reset();
     await page.reload({ waitUntil: "networkidle" });
-    await expect(page.getByTestId("property-summary-profit")).toContainText("-€42");
-    await expect(page.locator("body")).not.toContainText("£");
-    await expect(page.getByTestId("property-performance-chart")).toBeVisible();
-    await assertAppHealthy(page, monitor, "property page persists after reload");
-
-    monitor.reset();
-    await page.locator(`[data-testid="room-link"][href="/rooms/${room.id}"]`).click();
-    await expect(page).toHaveURL(new RegExp(`/rooms/${room.id}$`));
-    await assertAppHealthy(page, monitor, "room link from property page works");
+    await expect(page.getByTestId("property-expenses-section")).toContainText("€42");
+    await expect(page.getByTestId("property-expenses-section")).toContainText("€75");
+    await assertAppHealthy(page, monitor, "cost entries persist after reload");
   } finally {
     if (propertyUrl) {
       await archiveProperty(page, propertyUrl);
