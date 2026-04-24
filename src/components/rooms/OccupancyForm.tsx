@@ -75,10 +75,27 @@ export function OccupancyForm({ occupancy, tenant }: OccupancyFormProps) {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Payment Grace Period (days)
+            </label>
+            <input
+              type="number"
+              name="paymentGracePeriodDays"
+              min="0"
+              step="1"
+              defaultValue={occupancy.paymentGracePeriodDays ?? 5}
+              data-testid="edit-occupancy-payment-grace-period-days"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
             <p className="text-xs font-medium text-slate-500">Current Rent Terms</p>
-            <p className="mt-1 text-sm text-slate-700">Rent {occupancy.monthlyRent} · Due day {occupancy.rentDueDay}</p>
-            <p className="mt-1 text-xs text-slate-500">Changing lease start also updates unpaid monthly payment rows.</p>
+            <p className="mt-1 text-sm text-slate-700">
+              Rent {occupancy.monthlyRent} · Bill day {occupancy.rentDueDay} · Grace {occupancy.paymentGracePeriodDays ?? 5} days
+            </p>
+            <p className="mt-1 text-xs text-slate-500">Changing lease start or grace period also updates monthly payment due dates.</p>
           </div>
         </div>
 

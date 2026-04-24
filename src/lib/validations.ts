@@ -62,6 +62,7 @@ export const OccupancySchema = z
     monthlyRent: z.coerce.number().min(0, "Rent must be 0 or more"),
     depositRequired: z.coerce.number().min(0, "Deposit must be 0 or more"),
     rentDueDay: z.coerce.number().min(1).max(28).default(1),
+    paymentGracePeriodDays: z.coerce.number().int().min(0, "Payment grace period must be 0 or more").default(5),
     status: z.enum(["ACTIVE", "ENDED", "PENDING"]).default("ACTIVE"),
     notes: z.string().max(2000).optional().or(z.literal("")),
   })

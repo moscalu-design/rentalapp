@@ -47,11 +47,12 @@ export function computePaymentStatus(payment: {
   amountPaid: number;
   status: string;
   dueDate: Date | string;
+  asOf?: Date;
 }): string {
   if (payment.status === "WAIVED") return "WAIVED";
   if (payment.amountPaid >= payment.amountDue) return "PAID";
   if (payment.amountPaid > 0) return "PARTIAL";
-  if (isAfter(new Date(), new Date(payment.dueDate))) return "OVERDUE";
+  if (isAfter(payment.asOf ?? new Date(), new Date(payment.dueDate))) return "OVERDUE";
   return "UNPAID";
 }
 

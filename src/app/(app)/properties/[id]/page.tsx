@@ -12,7 +12,7 @@ import { getMonthlyCostForMonth } from "@/lib/mortgage";
 import { getExpenseTotalForMonth } from "@/lib/expenses";
 import { getDisplayRoomStatus, summarizeRooms } from "@/lib/roomOccupancy";
 import prisma from "@/lib/prisma";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { computePaymentStatus, formatCurrency, formatDate } from "@/lib/utils";
 
 export default async function PropertyDetailPage({
   params,
@@ -190,6 +190,7 @@ export default async function PropertyDetailPage({
               {property.rooms.map((room) => {
                 const activeOccupancy = room.occupancies[0];
                 const currentPayment = activeOccupancy?.payments[0];
+                const currentPaymentStatus = currentPayment ? computePaymentStatus(currentPayment) : null;
 
                 return (
                   <Link
@@ -226,16 +227,16 @@ export default async function PropertyDetailPage({
                       {currentPayment && (
                         <span
                           className={`hidden sm:inline-flex text-xs font-medium px-2 py-0.5 rounded-full ${
-                            currentPayment.status === "PAID"
+                            currentPaymentStatus === "PAID"
                               ? "bg-green-100 text-green-800"
-                              : currentPayment.status === "OVERDUE"
+                              : currentPaymentStatus === "OVERDUE"
                               ? "bg-red-100 text-red-800"
                               : "bg-amber-100 text-amber-800"
                           }`}
                         >
-                          {currentPayment.status === "PAID"
+                          {currentPaymentStatus === "PAID"
                             ? "Paid"
-                            : currentPayment.status === "OVERDUE"
+                            : currentPaymentStatus === "OVERDUE"
                             ? "Overdue"
                             : "Unpaid"}
                         </span>

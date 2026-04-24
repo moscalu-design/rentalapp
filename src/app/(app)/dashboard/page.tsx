@@ -4,7 +4,7 @@ import { StatCard } from "@/components/shared/StatCard";
 import { PaymentStatusBadge } from "@/components/shared/StatusBadge";
 import { summarizeRooms } from "@/lib/roomOccupancy";
 import prisma from "@/lib/prisma";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { computePaymentStatus, formatCurrency, formatDate } from "@/lib/utils";
 
 async function getDashboardData() {
   const now = new Date();
@@ -47,16 +47,20 @@ async function getDashboardData() {
   ]);
 
   const { totalRooms, occupiedRooms, vacantRooms } = summarizeRooms(rooms);
+  const currentMonthPaymentsWithStatus = currentMonthPayments.map((payment) => ({
+    ...payment,
+    derivedStatus: computePaymentStatus(payment),
+  }));
 
-  const rentDue = currentMonthPayments
-    .filter((p) => ["UNPAID", "PARTIAL", "OVERDUE"].includes(p.status))
+  const rentDue = currentMonthPaymentsWithStatus
+    .filter((p) => ["UNPAID", "PARTIAL", "OVERDUE"].includes(p.derivedStatus))
     .reduce((sum, p) => sum + p.amountDue - p.amountPaid, 0);
 
-  const rentReceived = currentMonthPayments
+  const rentReceived = currentMonthPaymentsWithStatus
     .filter((p) => p.amountPaid > 0)
     .reduce((sum, p) => sum + p.amountPaid, 0);
 
-  const overduePayments = currentMonthPayments.filter((p) => p.status === "OVERDUE");
+  const overduePayments = currentMonthPaymentsWithStatus.filter((p) => p.derivedStatus === "OVERDUE");
 
   return {
     propertyCount: properties.length,
@@ -66,7 +70,7 @@ async function getDashboardData() {
     rentDue,
     rentReceived,
     overduePayments,
-    currentMonthPayments,
+    currentMonthPayments: currentMonthPaymentsWithStatus,
     recentActivity,
     year,
     month,
@@ -143,7 +147,7 @@ export default async function DashboardPage() {
                       <span className="text-sm font-medium text-slate-700">
                         {formatCurrency(payment.amountDue)}
                       </span>
-                      <PaymentStatusBadge status={payment.status} size="sm" />
+                      <PaymentStatusBadge status={payment.derivedStatus} size="sm" />
                     </div>
                   </div>
                 ))

@@ -5,7 +5,13 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { OccupancySchema } from "@/lib/validations";
-import { getDueDate } from "@/lib/utils";
+import {
+  getPaymentDueDate,
+  listPaymentPeriodsForOccupancy,
+  periodKey,
+  toBillingDate,
+  type PaymentPeriod,
+} from "@/lib/occupancyPayments";
 
 async function requireAuth() {
   const session = await auth();
@@ -13,25 +19,8 @@ async function requireAuth() {
   return session.user;
 }
 
-function getMonthKey(date: Date) {
-  return date.getFullYear() * 100 + date.getMonth() + 1;
-}
-
-function listPaymentPeriods(from: Date, to: Date) {
-  const periods: Array<{ year: number; month: number }> = [];
-  let year = from.getFullYear();
-  let month = from.getMonth() + 1;
-
-  while (year < to.getFullYear() || (year === to.getFullYear() && month <= to.getMonth() + 1)) {
-    periods.push({ year, month });
-    month++;
-    if (month > 12) {
-      month = 1;
-      year++;
-    }
-  }
-
-  return periods;
+function periodIsBefore(a: PaymentPeriod, b: PaymentPeriod) {
+  return a.year < b.year || (a.year === b.year && a.month < b.month);
 }
 
 export async function createOccupancy(formData: FormData) {
@@ -46,6 +35,7 @@ export async function createOccupancy(formData: FormData) {
     monthlyRent: formData.get("monthlyRent"),
     depositRequired: formData.get("depositRequired"),
     rentDueDay: formData.get("rentDueDay") || 1,
+    paymentGracePeriodDays: formData.get("paymentGracePeriodDays") || 5,
     status: formData.get("status") || "ACTIVE",
     notes: formData.get("notes") || undefined,
   });
@@ -58,17 +48,21 @@ export async function createOccupancy(formData: FormData) {
   if (occupiedRoom) throw new Error("This room already has an active tenant.");
   if (activeTenantLease) throw new Error("This tenant already has an active lease.");
 
+  const leaseStart = toBillingDate(validated.leaseStart);
+  const moveInDate = validated.moveInDate ? toBillingDate(validated.moveInDate) : null;
+
   const occupancy = await prisma.occupancy.create({
     data: {
       roomId: validated.roomId,
       tenantId: validated.tenantId,
-      leaseStart: new Date(validated.leaseStart),
+      leaseStart,
       leaseEnd: validated.leaseEnd ? new Date(validated.leaseEnd) : null,
-      moveInDate: validated.moveInDate ? new Date(validated.moveInDate) : null,
+      moveInDate,
       moveOutDate: validated.moveOutDate ? new Date(validated.moveOutDate) : null,
       monthlyRent: validated.monthlyRent,
       depositRequired: validated.depositRequired,
       rentDueDay: validated.rentDueDay,
+      paymentGracePeriodDays: validated.paymentGracePeriodDays,
       status: validated.status,
       notes: validated.notes || null,
     },
@@ -107,29 +101,22 @@ export async function createOccupancy(formData: FormData) {
     },
   });
 
-  // Backfill payments from lease start to current month
-  const leaseStart = new Date(validated.leaseStart);
-  const now = new Date();
-  const payments = [];
-  let year = leaseStart.getFullYear();
-  let month = leaseStart.getMonth() + 1;
-
-  while (year < now.getFullYear() || (year === now.getFullYear() && month <= now.getMonth() + 1)) {
-    payments.push({
-      occupancyId: occupancy.id,
-      periodYear: year,
-      periodMonth: month,
-      amountDue: validated.monthlyRent,
-      dueDate: getDueDate(year, month, validated.rentDueDay),
-      status: "UNPAID",
-    });
-
-    month++;
-    if (month > 12) {
-      month = 1;
-      year++;
-    }
-  }
+  // Generate payment records from the lease start, plus one upcoming period for
+  // already-started tenancies so early payments can target the next rent month.
+  const periods = listPaymentPeriodsForOccupancy({ leaseStart });
+  const payments = periods.map((period) => ({
+    occupancyId: occupancy.id,
+    periodYear: period.year,
+    periodMonth: period.month,
+    amountDue: validated.monthlyRent,
+    dueDate: getPaymentDueDate({
+      leaseStart,
+      period,
+      rentDueDay: validated.rentDueDay,
+      paymentGracePeriodDays: validated.paymentGracePeriodDays,
+    }),
+    status: "UNPAID",
+  }));
 
   if (payments.length > 0) {
     await prisma.payment.createMany({ data: payments });
@@ -222,39 +209,63 @@ export async function updateOccupancy(occupancyId: string, formData: FormData) {
     monthlyRent: occupancy.monthlyRent,
     depositRequired: occupancy.depositRequired,
     rentDueDay: occupancy.rentDueDay,
+    paymentGracePeriodDays: formData.get("paymentGracePeriodDays") ?? occupancy.paymentGracePeriodDays,
     status: occupancy.status,
     notes: formData.get("notes") || undefined,
   });
 
-  const newLeaseStart = new Date(validated.leaseStart);
-  const newLeaseStartKey = getMonthKey(newLeaseStart);
-  const removablePayments = occupancy.payments.filter(
-    (payment) => payment.periodYear * 100 + payment.periodMonth < newLeaseStartKey
-  );
+  const newLeaseStart = toBillingDate(validated.leaseStart);
+  const newMoveIn = validated.moveInDate ? toBillingDate(validated.moveInDate) : null;
 
+  const targetPeriods = listPaymentPeriodsForOccupancy({
+    leaseStart: newLeaseStart,
+  });
+  const targetKeys = new Set(targetPeriods.map(periodKey));
+  const firstTarget = targetPeriods[0];
+
+  // Existing payments outside the new target window are candidates for removal.
+  const removablePayments = occupancy.payments.filter((payment) => {
+    const key = `${payment.periodYear}-${payment.periodMonth}`;
+    return !targetKeys.has(key);
+  });
+
+  // Any removable payment that already has recorded activity is locked — editing
+  // would silently delete that history, so block the update with a clear error.
   const lockedPayments = removablePayments.filter(
-    (payment) => payment.amountPaid > 0 || !["UNPAID", "OVERDUE"].includes(payment.status)
+    (payment) => payment.amountPaid > 0 || !["UNPAID", "OVERDUE"].includes(payment.status),
   );
 
   if (lockedPayments.length > 0) {
+    // Keep the error message focused on the most common cause: moving lease start
+    // past an existing paid period.
+    const hasShiftedForward = firstTarget
+      ? occupancy.payments.some((p) =>
+          periodIsBefore({ year: p.periodYear, month: p.periodMonth }, firstTarget),
+        )
+      : false;
     throw new Error(
-      "Lease start cannot be moved after an existing payment period that already has payment activity."
+      hasShiftedForward
+        ? "Lease start cannot be moved after an existing payment period that already has payment activity."
+        : "This change would remove a payment period that already has recorded activity.",
     );
   }
 
-  const now = new Date();
-  const targetPeriods = listPaymentPeriods(newLeaseStart, now);
   const existingKeys = new Set(
-    occupancy.payments.map((payment) => `${payment.periodYear}-${payment.periodMonth}`)
+    occupancy.payments.map((payment) => `${payment.periodYear}-${payment.periodMonth}`),
   );
   const paymentsToCreate = targetPeriods
-    .filter((period) => !existingKeys.has(`${period.year}-${period.month}`))
+    .filter((period) => !existingKeys.has(periodKey(period)))
     .map((period) => ({
       occupancyId,
       periodYear: period.year,
       periodMonth: period.month,
       amountDue: occupancy.monthlyRent,
-      dueDate: getDueDate(period.year, period.month, occupancy.rentDueDay),
+      dueDate: getPaymentDueDate({
+        leaseStart: newLeaseStart,
+        period,
+        rentDueDay: occupancy.rentDueDay,
+        paymentGracePeriodDays: validated.paymentGracePeriodDays,
+      }),
       status: "UNPAID" as const,
     }));
 
@@ -264,7 +275,8 @@ export async function updateOccupancy(occupancyId: string, formData: FormData) {
       data: {
         leaseStart: newLeaseStart,
         leaseEnd: validated.leaseEnd ? new Date(validated.leaseEnd) : null,
-        moveInDate: validated.moveInDate ? new Date(validated.moveInDate) : null,
+        moveInDate: newMoveIn,
+        paymentGracePeriodDays: validated.paymentGracePeriodDays,
         notes: validated.notes || null,
       },
     });
@@ -284,6 +296,28 @@ export async function updateOccupancy(occupancyId: string, formData: FormData) {
         data: paymentsToCreate,
       });
     }
+
+    const targetPeriodMap = new Map(targetPeriods.map((period) => [periodKey(period), period]));
+    await Promise.all(
+      occupancy.payments
+        .filter((payment) => targetPeriodMap.has(`${payment.periodYear}-${payment.periodMonth}`))
+        .map((payment) => {
+          const period = targetPeriodMap.get(`${payment.periodYear}-${payment.periodMonth}`);
+          if (!period) return Promise.resolve();
+
+          return tx.payment.update({
+            where: { id: payment.id },
+            data: {
+              dueDate: getPaymentDueDate({
+                leaseStart: newLeaseStart,
+                period,
+                rentDueDay: occupancy.rentDueDay,
+                paymentGracePeriodDays: validated.paymentGracePeriodDays,
+              }),
+            },
+          });
+        }),
+    );
   });
 
   revalidatePath(`/rooms/${occupancy.roomId}`);

@@ -1,0 +1,2 @@
+ALTER TABLE "Occupancy"
+ADD COLUMN "paymentGracePeriodDays" INTEGER NOT NULL DEFAULT 5;

@@ -147,6 +147,17 @@ describe("OccupancySchema", () => {
       OccupancySchema.parse({ ...valid, rentDueDay: 29 })
     ).toThrow();
   });
+
+  it("defaults paymentGracePeriodDays to 5", () => {
+    const parsed = OccupancySchema.parse(valid);
+    expect(parsed.paymentGracePeriodDays).toBe(5);
+  });
+
+  it("rejects negative paymentGracePeriodDays", () => {
+    expect(() =>
+      OccupancySchema.parse({ ...valid, paymentGracePeriodDays: -1 })
+    ).toThrow();
+  });
 });
 
 // ─── PaymentSchema ────────────────────────────────────────────────────────────

@@ -308,14 +308,31 @@ export function AssignTenantForm({
 
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        Payment Grace Period (days)
+                      </label>
+                      <input
+                        type="number"
+                        name="paymentGracePeriodDays"
+                        min="0"
+                        step="1"
+                        defaultValue={5}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
                         Move-in Date
+                        <span className="ml-1 text-slate-400 font-normal">(optional)</span>
                       </label>
                       <input
                         type="date"
                         name="moveInDate"
-                        defaultValue={today}
                         className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
+                      <p className="mt-1 text-xs text-slate-400">
+                        Kept for history and occupancy records. Rent billing follows the lease start date.
+                      </p>
                     </div>
 
                     <div className="md:col-span-2 flex items-center justify-between gap-3 pt-2">

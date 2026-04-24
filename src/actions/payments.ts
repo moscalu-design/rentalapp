@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { applyDepositTransaction } from "@/lib/depositUtils";
+import { toBillingDate } from "@/lib/occupancyPayments";
 import prisma from "@/lib/prisma";
 import { PaymentSchema, DepositTransactionSchema } from "@/lib/validations";
 import { computePaymentStatus } from "@/lib/utils";
@@ -39,7 +40,7 @@ export async function recordPayment(paymentId: string, formData: FormData) {
     data: {
       amountPaid: validated.amountPaid,
       status,
-      paidAt: validated.paidAt ? new Date(validated.paidAt) : (validated.amountPaid > 0 ? new Date() : null),
+      paidAt: validated.paidAt ? toBillingDate(validated.paidAt) : (validated.amountPaid > 0 ? new Date() : null),
       paymentMethod: validated.paymentMethod || null,
       reference: validated.reference || null,
       notes: validated.notes || null,

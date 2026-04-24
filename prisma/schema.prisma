@@ -177,6 +177,7 @@ model Occupancy {
   monthlyRent     Float     // agreed rent for this lease (may differ from room.monthlyRent)
   depositRequired Float
   rentDueDay      Int       @default(1) // 1–28: day of month rent is due
+  paymentGracePeriodDays Int @default(5)
   status          String    @default("ACTIVE")
   notes           String?
   createdAt       DateTime  @default(now())

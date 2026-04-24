@@ -5,7 +5,7 @@ import { TenantStatusBadge, PaymentStatusBadge, DepositStatusBadge } from "@/com
 import { DocumentsSection } from "@/components/documents/DocumentsSection";
 import { DeleteTenantForm } from "@/components/tenants/DeleteTenantForm";
 import prisma from "@/lib/prisma";
-import { formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
+import { computePaymentStatus, formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
 
 export default async function TenantDetailPage({
   params,
@@ -230,7 +230,7 @@ export default async function TenantDetailPage({
                       <p className="text-xs text-slate-400 mt-0.5">Paid {formatDate(p.paidAt)}</p>
                     )}
                   </div>
-                  <PaymentStatusBadge status={p.status} size="sm" />
+                  <PaymentStatusBadge status={computePaymentStatus(p)} size="sm" />
                 </div>
               ))}
             </div>
@@ -254,7 +254,7 @@ export default async function TenantDetailPage({
                       <td className="px-5 py-3 text-slate-700">{formatCurrency(p.amountDue)}</td>
                       <td className="px-5 py-3 text-slate-700">{p.amountPaid > 0 ? formatCurrency(p.amountPaid) : "—"}</td>
                       <td className="px-5 py-3 text-slate-500">{formatDate(p.paidAt)}</td>
-                      <td className="px-5 py-3"><PaymentStatusBadge status={p.status} size="sm" /></td>
+                      <td className="px-5 py-3"><PaymentStatusBadge status={computePaymentStatus(p)} size="sm" /></td>
                     </tr>
                   ))}
                 </tbody>

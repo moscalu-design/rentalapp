@@ -13,6 +13,7 @@ import {
 import { DeleteRoomForm } from "@/components/rooms/DeleteRoomForm";
 import { EndTenancyForm } from "@/components/rooms/EndTenancyForm";
 import { summarizeDepositTransactions } from "@/lib/depositUtils";
+import { computePaymentStatus } from "@/lib/utils";
 import { getDisplayRoomStatus } from "@/lib/roomOccupancy";
 import prisma from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -58,7 +59,7 @@ export default async function RoomDetailPage({
         paidAt: payment.paidAt,
         dueDate: payment.dueDate,
         paymentMethod: payment.paymentMethod,
-        status: payment.status,
+        status: computePaymentStatus(payment),
       }))
     )
     .sort((a, b) => {
@@ -218,6 +219,10 @@ export default async function RoomDetailPage({
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Rent Due Day</span>
                   <span className="font-medium text-slate-700">{activeOccupancy.rentDueDay}th of month</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Payment Grace</span>
+                  <span className="font-medium text-slate-700">{activeOccupancy.paymentGracePeriodDays ?? 5} days</span>
                 </div>
               </div>
 

@@ -28,10 +28,14 @@ test("active tenancy lease start can be corrected", async ({ page }) => {
   const updatedValue = currentValue === "2024-01-01" ? "2024-02-01" : "2024-01-01";
 
   await leaseStartInput.fill(updatedValue);
+  const graceInput = page.getByTestId("edit-occupancy-payment-grace-period-days");
+  const currentGrace = await graceInput.inputValue();
+  await graceInput.fill(currentGrace === "5" ? "7" : "5");
   await page.getByRole("button", { name: "Save Changes" }).click();
   await page.waitForLoadState("networkidle");
 
   const expectedText = updatedValue === "2024-01-01" ? "01 Jan 2024" : "01 Feb 2024";
   await expect(page.getByText(expectedText)).toBeVisible();
+  await expect(page.getByText(/Payment Grace/)).toBeVisible();
   await assertAppHealthy(page, monitor, `room detail after editing tenancy ${roomPath}`);
 });

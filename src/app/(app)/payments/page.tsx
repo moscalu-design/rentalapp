@@ -2,7 +2,7 @@ import Link from "next/link";
 import { TopBar } from "@/components/layout/TopBar";
 import { PaymentStatusBadge } from "@/components/shared/StatusBadge";
 import prisma from "@/lib/prisma";
-import { formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
+import { computePaymentStatus, formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
 
 async function getPaymentsData(year: number, month: number) {
   const payments = await prisma.payment.findMany({
@@ -19,14 +19,18 @@ async function getPaymentsData(year: number, month: number) {
   });
 
   payments.sort((a, b) => a.occupancy.tenant.firstName.localeCompare(b.occupancy.tenant.firstName));
+  const paymentsWithStatus = payments.map((payment) => ({
+    ...payment,
+    derivedStatus: computePaymentStatus(payment),
+  }));
 
-  const totalDue = payments.reduce((sum, p) => sum + p.amountDue, 0);
-  const totalPaid = payments.reduce((sum, p) => sum + p.amountPaid, 0);
-  const totalOutstanding = payments
-    .filter((p) => !["PAID", "WAIVED"].includes(p.status))
+  const totalDue = paymentsWithStatus.reduce((sum, p) => sum + p.amountDue, 0);
+  const totalPaid = paymentsWithStatus.reduce((sum, p) => sum + p.amountPaid, 0);
+  const totalOutstanding = paymentsWithStatus
+    .filter((p) => !["PAID", "WAIVED"].includes(p.derivedStatus))
     .reduce((sum, p) => sum + (p.amountDue - p.amountPaid), 0);
 
-  return { payments, totalDue, totalPaid, totalOutstanding };
+  return { payments: paymentsWithStatus, totalDue, totalPaid, totalOutstanding };
 }
 
 function buildMonthOptions() {
@@ -55,7 +59,7 @@ export default async function PaymentsPage({
   const { payments, totalDue, totalPaid, totalOutstanding } = await getPaymentsData(year, month);
 
   const filtered = statusFilter
-    ? payments.filter((p) => p.status === statusFilter)
+    ? payments.filter((p) => p.derivedStatus === statusFilter)
     : payments;
 
   const monthOptions = buildMonthOptions();
@@ -159,7 +163,7 @@ export default async function PaymentsPage({
                         {payment.occupancy.room.property.name} · {payment.occupancy.room.name}
                       </Link>
                     </div>
-                    <PaymentStatusBadge status={payment.status} size="sm" />
+                    <PaymentStatusBadge status={payment.derivedStatus} size="sm" />
                   </div>
                   <dl className="grid grid-cols-2 gap-3 text-sm">
                     <div>
@@ -232,7 +236,7 @@ export default async function PaymentsPage({
                     <td className="px-5 py-3 text-slate-500">{formatDate(payment.paidAt)}</td>
                     <td className="px-5 py-3 text-slate-500">{payment.paymentMethod?.replace("_", " ") ?? "—"}</td>
                     <td className="px-5 py-3">
-                      <PaymentStatusBadge status={payment.status} size="sm" />
+                      <PaymentStatusBadge status={payment.derivedStatus} size="sm" />
                     </td>
                     <td className="px-5 py-3">
                       <Link href={`/rooms/${payment.occupancy.roomId}`} className="text-xs text-blue-600 hover:text-blue-700 font-medium">

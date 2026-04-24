@@ -50,6 +50,28 @@ describe("computePaymentStatus", () => {
     ).toBe("UNPAID");
   });
 
+  it("uses the supplied as-of date when checking overdue status", () => {
+    const dueDate = new Date("2026-04-25");
+    expect(
+      computePaymentStatus({
+        amountDue: 1000,
+        amountPaid: 0,
+        status: "UNPAID",
+        dueDate,
+        asOf: new Date("2026-04-24"),
+      })
+    ).toBe("UNPAID");
+    expect(
+      computePaymentStatus({
+        amountDue: 1000,
+        amountPaid: 0,
+        status: "UNPAID",
+        dueDate,
+        asOf: new Date("2026-04-26"),
+      })
+    ).toBe("OVERDUE");
+  });
+
   it("WAIVED takes precedence over OVERDUE", () => {
     expect(
       computePaymentStatus({ amountDue: 1000, amountPaid: 0, status: "WAIVED", dueDate: pastDate })
