@@ -1,7 +1,12 @@
 "use client";
 
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { createRoom, updateRoom } from "@/actions/rooms";
+import {
+  createRoomFromState,
+  updateRoomFromState,
+  type RoomActionState,
+} from "@/actions/rooms";
 import type { Room } from "@/generated/prisma/client";
 
 function SubmitButton({ label }: { label: string }) {
@@ -24,13 +29,26 @@ interface RoomFormProps {
 
 export function RoomForm({ propertyId, room }: RoomFormProps) {
   const action = room
-    ? updateRoom.bind(null, room.id, propertyId)
-    : createRoom.bind(null, propertyId);
+    ? updateRoomFromState.bind(null, room.id, propertyId)
+    : createRoomFromState.bind(null, propertyId);
+  const [state, formAction] = useActionState<RoomActionState, FormData>(
+    action,
+    { error: null }
+  );
 
   return (
-    <form action={action} className="space-y-6 max-w-2xl">
+    <form action={formAction} className="space-y-6 max-w-2xl">
       <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 space-y-4">
         <h2 className="text-sm font-semibold text-slate-700">Room Details</h2>
+
+        {state.error && (
+          <div
+            role="alert"
+            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          >
+            {state.error}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2">

@@ -1,10 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { RoomSchema } from "@/lib/validations";
+import { z } from "zod";
+
+export type RoomActionState = {
+  error: string | null;
+};
 
 async function requireAuth() {
   const session = await auth();
@@ -12,9 +17,15 @@ async function requireAuth() {
   return session.user;
 }
 
-export async function createRoom(propertyId: string, formData: FormData) {
-  const user = await requireAuth();
-  const validated = RoomSchema.parse({
+function getRoomValidationMessage(error: unknown) {
+  if (error instanceof z.ZodError) {
+    return error.issues[0]?.message ?? "Check the room details and try again.";
+  }
+  return error instanceof Error ? error.message : "Something went wrong. Please try again.";
+}
+
+function parseRoomFormData(formData: FormData) {
+  return RoomSchema.parse({
     name: formData.get("name"),
     floor: formData.get("floor") || undefined,
     sizeM2: formData.get("sizeM2") || undefined,
@@ -25,6 +36,11 @@ export async function createRoom(propertyId: string, formData: FormData) {
     status: formData.get("status") || "VACANT",
     notes: formData.get("notes") || undefined,
   });
+}
+
+export async function createRoom(propertyId: string, formData: FormData): Promise<never> {
+  const user = await requireAuth();
+  const validated = parseRoomFormData(formData);
 
   const room = await prisma.room.create({
     data: {
@@ -52,19 +68,23 @@ export async function createRoom(propertyId: string, formData: FormData) {
   redirect(`/rooms/${room.id}`);
 }
 
-export async function updateRoom(id: string, propertyId: string, formData: FormData) {
+export async function createRoomFromState(
+  propertyId: string,
+  _prevState: RoomActionState,
+  formData: FormData
+): Promise<RoomActionState> {
+  try {
+    await createRoom(propertyId, formData);
+  } catch (error) {
+    unstable_rethrow(error);
+    return { error: getRoomValidationMessage(error) };
+  }
+  return { error: null };
+}
+
+export async function updateRoom(id: string, propertyId: string, formData: FormData): Promise<never> {
   await requireAuth();
-  const validated = RoomSchema.parse({
-    name: formData.get("name"),
-    floor: formData.get("floor") || undefined,
-    sizeM2: formData.get("sizeM2") || undefined,
-    furnished: formData.get("furnished") === "true",
-    privateBathroom: formData.get("privateBathroom") === "true",
-    monthlyRent: formData.get("monthlyRent"),
-    depositAmount: formData.get("depositAmount"),
-    status: formData.get("status") || "VACANT",
-    notes: formData.get("notes") || undefined,
-  });
+  const validated = parseRoomFormData(formData);
 
   await prisma.room.update({
     where: { id },
@@ -79,6 +99,21 @@ export async function updateRoom(id: string, propertyId: string, formData: FormD
   revalidatePath(`/rooms/${id}`);
   revalidatePath(`/properties/${propertyId}`);
   redirect(`/rooms/${id}`);
+}
+
+export async function updateRoomFromState(
+  id: string,
+  propertyId: string,
+  _prevState: RoomActionState,
+  formData: FormData
+): Promise<RoomActionState> {
+  try {
+    await updateRoom(id, propertyId, formData);
+  } catch (error) {
+    unstable_rethrow(error);
+    return { error: getRoomValidationMessage(error) };
+  }
+  return { error: null };
 }
 
 export async function deleteRoom(id: string, propertyId: string) {
