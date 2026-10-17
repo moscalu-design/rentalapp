@@ -90,7 +90,7 @@ export default async function PropertyPaymentsPage({
         actions={
           <Link
             href={`/properties/${id}`}
-            className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+            className="text-sm font-medium text-muted-foreground border border-border px-3 py-2 rounded-lg hover:bg-background transition-colors"
           >
             Property
           </Link>
@@ -101,26 +101,31 @@ export default async function PropertyPaymentsPage({
         <PropertySubnav propertyId={id} active="payments" />
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-lg border border-slate-200 bg-white px-4 py-4 shadow-sm shadow-slate-200/40">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Total due</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">{formatCurrency(totals.due)}</p>
+          <div className="rounded-lg border border-border bg-card px-4 py-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Total due</p>
+            <p className="mt-1 text-2xl font-bold text-foreground">{formatCurrency(totals.due)}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white px-4 py-4 shadow-sm shadow-slate-200/40">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Paid</p>
+          <div className="rounded-lg border border-border bg-card px-4 py-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Paid</p>
             <p className="mt-1 text-2xl font-bold text-emerald-700">{formatCurrency(totals.paid)}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white px-4 py-4 shadow-sm shadow-slate-200/40">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Outstanding</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">{formatCurrency(totals.outstanding)}</p>
+          <div className="rounded-lg border border-border bg-card px-4 py-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Outstanding</p>
+            <p className="mt-1 text-2xl font-bold text-foreground">{formatCurrency(totals.outstanding)}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white px-4 py-4 shadow-sm shadow-slate-200/40">
+          <div className="rounded-lg border border-border bg-card px-4 py-4">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Overdue</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Overdue</p>
               {totals.overdue > 0 && <PaymentStatusBadge status="OVERDUE" size="sm" />}
             </div>
-            <p className="mt-1 text-2xl font-bold text-red-600">{formatCurrency(totals.overdue)}</p>
+            <p className="mt-1 text-2xl font-bold text-destructive">{formatCurrency(totals.overdue)}</p>
           </div>
         </div>
+
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Totals cover all stored rent bills for active tenancies, across past and future billing periods.
+          Outstanding includes bills not yet due. Table filters apply only to the rows below.
+        </p>
 
         <PropertyPaymentsTable payments={payments} />
       </div>

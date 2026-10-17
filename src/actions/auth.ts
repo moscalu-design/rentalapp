@@ -1,13 +1,44 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { AuthError } from "next-auth";
 import bcrypt from "bcryptjs";
-import { signOut } from "@/lib/auth";
+import { signIn, signOut } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { SignupSchema } from "@/lib/validations";
 
 export async function signOutAction() {
   await signOut({ redirectTo: "/login" });
+}
+
+export type LoginState = {
+  error?: string;
+};
+
+export async function loginAction(
+  _prevState: LoginState,
+  formData: FormData
+): Promise<LoginState> {
+  try {
+    await signIn("credentials", {
+      email: formData.get("email"),
+      password: formData.get("password"),
+      totpCode: formData.get("totpCode") || undefined,
+      redirectTo: "/dashboard",
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return {
+        error: error.type === "CredentialsSignin"
+          ? "Unable to sign in. Check your email, password and two-factor code if enabled."
+          : "Sign-in is temporarily unavailable. Please try again.",
+      };
+    }
+    // A successful sign-in redirects by throwing; preserve that framework signal.
+    throw error;
+  }
+
+  return {};
 }
 
 export type SignupState = {

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { recordPayment } from "@/actions/payments";
-import { formatCurrency, formatDateShort, formatMonthYear, computePaymentStatus } from "@/lib/utils";
+import { formatCurrency, formatDateShort, formatMonthYear, computePaymentStatus, toDateInputValue } from "@/lib/utils";
 import type { Payment } from "@/generated/prisma/client";
 import { PaymentStatusBadge } from "@/components/shared/StatusBadge";
 
@@ -14,7 +14,7 @@ function SubmitButton() {
       type="submit"
       data-testid="record-payment-submit"
       disabled={pending}
-      className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-60 text-white font-medium text-sm py-2.5 rounded-lg transition-colors"
+      className="w-full bg-primary hover:bg-primary disabled:opacity-60 text-white font-medium text-sm py-2.5 rounded-lg transition-colors"
     >
       {pending ? "Recording…" : "Record Payment Now"}
     </button>
@@ -45,6 +45,8 @@ export function RecordPaymentForm({
   todayInputValue,
   payments,
 }: RecordPaymentFormProps) {
+  const formId = useId();
+
   // Build a rolling 6-month window around today. Always selectable so operators
   // can see "no record" explicitly for a period that doesn't have one.
   const rollingWindow: Period[] = [];
@@ -114,15 +116,16 @@ export function RecordPaymentForm({
     <div className="space-y-4">
       {/* Period selector */}
       <div>
-        <label className="block text-xs font-medium text-slate-600 mb-1.5">Rent Period</label>
+        <label htmlFor={`${formId}-period`} className="block text-xs font-medium text-muted-foreground mb-1.5">Rent period</label>
         <select
+          id={`${formId}-period`}
           value={`${selectedYear}-${selectedMonth}`}
           onChange={(e) => {
             const [y, m] = e.target.value.split("-").map(Number);
             setSelectedYear(y);
             setSelectedMonth(m);
           }}
-          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         >
           {options.map(({ year, month }) => (
             <option key={`${year}-${month}`} value={`${year}-${month}`}>
@@ -135,49 +138,59 @@ export function RecordPaymentForm({
       {selectedPayment && (
         <div
           data-testid="selected-payment-summary"
-          className="bg-slate-50 rounded-lg px-3 py-2.5 space-y-2 text-sm"
+          className="bg-background rounded-lg px-3 py-2.5 space-y-2 text-sm"
         >
           <div className="flex items-center justify-between gap-3">
-            <span className="text-slate-700 font-medium">
+            <span className="text-foreground font-medium">
               Applying payment to {formatMonthYear(selectedPayment.periodYear, selectedPayment.periodMonth)}
             </span>
             <PaymentStatusBadge status={selectedStatus ?? selectedPayment.status} size="sm" />
           </div>
-          <div className="flex items-center justify-between gap-3 text-slate-600">
+          <div className="flex items-center justify-between gap-3 text-muted-foreground">
             <span>Due: {formatCurrency(selectedPayment.amountDue)}</span>
             <span>Due date: {formatDateShort(selectedPayment.dueDate)}</span>
           </div>
         </div>
       )}
 
-      {action ? (
-        <form action={action} className="space-y-3">
+      {action && selectedPayment ? (
+        <form key={selectedPayment.id} action={action} className="space-y-3">
+          <input type="hidden" name="reference" value={selectedPayment.reference ?? ""} />
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">Amount Paid (€)</label>
+            <label htmlFor={`${formId}-amount`} className="block text-xs font-medium text-muted-foreground mb-1.5">Total received (€)</label>
             <input
+              id={`${formId}-amount`}
+              aria-describedby={`${formId}-amount-help`}
               name="amountPaid"
               type="number"
               step="0.01"
               min="0"
               required
-              defaultValue={selectedPayment?.amountPaid || selectedPayment?.amountDue || ""}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              defaultValue={selectedPayment.amountPaid || selectedPayment.amountDue}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
+            <p id={`${formId}-amount-help`} className="mt-1.5 text-xs leading-5 text-muted-foreground">
+              Enter the total received for this rent period, including earlier payments.
+              {selectedPayment.amountPaid > 0 && ` Already recorded: ${formatCurrency(selectedPayment.amountPaid)}.`}
+            </p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">Date Paid</label>
+            <label htmlFor={`${formId}-date`} className="block text-xs font-medium text-muted-foreground mb-1.5">Date paid</label>
             <input
+              id={`${formId}-date`}
               name="paidAt"
               type="date"
-              defaultValue={todayInputValue}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              defaultValue={toDateInputValue(selectedPayment.paidAt) || todayInputValue}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">Method</label>
+            <label htmlFor={`${formId}-method`} className="block text-xs font-medium text-muted-foreground mb-1.5">Payment method</label>
             <select
+              id={`${formId}-method`}
               name="paymentMethod"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              defaultValue={selectedPayment.paymentMethod ?? ""}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="">— Select —</option>
               <option value="BANK_TRANSFER">Bank Transfer</option>
@@ -187,23 +200,25 @@ export function RecordPaymentForm({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">Notes</label>
+            <label htmlFor={`${formId}-notes`} className="block text-xs font-medium text-muted-foreground mb-1.5">Notes</label>
             <input
+              id={`${formId}-notes`}
               name="notes"
+              defaultValue={selectedPayment.notes ?? ""}
               type="text"
               placeholder="Optional…"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
-          <div className="rounded-lg bg-blue-50 border border-blue-100 px-3 py-2">
-            <p className="text-xs text-blue-700">
+          <div className="rounded-lg bg-accent border border-blue-100 px-3 py-2">
+            <p className="text-xs text-primary">
               Save this payment to update the room ledger and tenant balance.
             </p>
           </div>
           <SubmitButton />
         </form>
       ) : (
-        <p className="text-xs text-slate-500 text-center py-4">
+        <p className="text-xs text-muted-foreground text-center py-4">
           No payment record found for this period.
         </p>
       )}

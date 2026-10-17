@@ -26,9 +26,9 @@ export function PropertySubnav({
   return (
     <nav
       aria-label="Property sections"
-      className="-mx-4 px-4 sm:mx-0 sm:px-0"
+      className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0"
     >
-      <div className="inline-flex rounded-xl bg-white border border-slate-200 p-1 shadow-sm">
+      <div className="inline-flex rounded-xl border border-border bg-muted p-1">
         {ITEMS.map((item) => {
           const isActive = item.key === active;
           return (
@@ -36,10 +36,10 @@ export function PropertySubnav({
               key={item.key}
               href={hrefs[item.key]}
               aria-current={isActive ? "page" : undefined}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors sm:text-sm sm:px-4 sm:py-2 ${
+              className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors sm:px-4 sm:py-2 sm:text-sm ${
                 isActive
-                  ? "bg-blue-500 text-white shadow-sm"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  ? "bg-card text-primary shadow-sm"
+                  : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
               }`}
             >
               {item.label}

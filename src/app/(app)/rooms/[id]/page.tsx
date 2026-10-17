@@ -112,19 +112,19 @@ export default async function RoomDetailPage({
             <Link
               href={`/properties/${room.propertyId}`}
               data-testid="room-parent-property-link"
-              className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+              className="text-sm font-medium text-muted-foreground border border-border px-3 py-2 rounded-lg hover:bg-background transition-colors"
             >
               Property
             </Link>
             <Link
               href={`/rooms/${id}/inventory`}
-              className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+              className="text-sm font-medium text-muted-foreground border border-border px-3 py-2 rounded-lg hover:bg-background transition-colors"
             >
               Inventory
             </Link>
             <Link
               href={`/rooms/${id}/edit`}
-              className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+              className="text-sm font-medium text-muted-foreground border border-border px-3 py-2 rounded-lg hover:bg-background transition-colors"
             >
               Edit Room
             </Link>
@@ -136,30 +136,30 @@ export default async function RoomDetailPage({
         {/* Room info strip */}
         <div
           data-testid="room-info-strip"
-          className="grid grid-cols-2 gap-4 bg-white border border-slate-200 rounded-xl px-4 py-4 sm:flex sm:flex-wrap sm:items-center sm:gap-6 sm:px-5"
+          className="grid grid-cols-2 gap-4 bg-card border border-border rounded-xl px-4 py-4 sm:flex sm:flex-wrap sm:items-center sm:gap-6 sm:px-5"
         >
           <div className="min-w-0">
-            <p className="text-xs text-slate-500">Monthly Rent</p>
-            <p className="text-base font-bold text-slate-800">{formatCurrency(room.monthlyRent)}</p>
+            <p className="text-xs text-muted-foreground">Monthly Rent</p>
+            <p className="text-base font-bold text-foreground">{formatCurrency(room.monthlyRent)}</p>
           </div>
-          <div className="hidden sm:block w-px h-8 bg-slate-200" />
+          <div className="hidden sm:block w-px h-8 bg-secondary" />
           <div className="min-w-0">
-            <p className="text-xs text-slate-500">Deposit</p>
-            <p data-testid="room-default-deposit-value" className="text-base font-bold text-slate-800">{formatCurrency(room.depositAmount)}</p>
+            <p className="text-xs text-muted-foreground">Deposit</p>
+            <p data-testid="room-default-deposit-value" className="text-base font-bold text-foreground">{formatCurrency(room.depositAmount)}</p>
           </div>
           {room.sizeM2 && (
             <>
-              <div className="hidden sm:block w-px h-8 bg-slate-200" />
+              <div className="hidden sm:block w-px h-8 bg-secondary" />
               <div className="min-w-0">
-                <p className="text-xs text-slate-500">Size</p>
-                <p className="text-base font-bold text-slate-800">{room.sizeM2} m²</p>
+                <p className="text-xs text-muted-foreground">Size</p>
+                <p className="text-base font-bold text-foreground">{room.sizeM2} m²</p>
               </div>
             </>
           )}
-          <div className="hidden sm:block w-px h-8 bg-slate-200" />
+          <div className="hidden sm:block w-px h-8 bg-secondary" />
           <div className="min-w-0">
-            <p className="text-xs text-slate-500">Furnished</p>
-            <p className="text-base font-bold text-slate-800">{room.furnished ? "Yes" : "No"}</p>
+            <p className="text-xs text-muted-foreground">Furnished</p>
+            <p className="text-base font-bold text-foreground">{room.furnished ? "Yes" : "No"}</p>
           </div>
         </div>
 
@@ -167,14 +167,14 @@ export default async function RoomDetailPage({
         {activeOccupancy ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Tenant + Lease */}
-            <div data-testid="room-current-tenant-card" className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+            <div data-testid="room-current-tenant-card" className="bg-card border border-border rounded-xl p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-slate-800">Current Tenant</h2>
+                <h2 className="text-sm font-semibold text-foreground">Current Tenant</h2>
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/rooms/${id}/occupancies/${activeOccupancy.id}/edit`}
                     data-testid="edit-occupancy-link"
-                    className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+                    className="text-sm font-medium text-muted-foreground border border-border px-3 py-2 rounded-lg hover:bg-background transition-colors"
                   >
                     Edit Tenancy
                   </Link>
@@ -186,7 +186,7 @@ export default async function RoomDetailPage({
                 <Link
                   href={`/tenants/${activeOccupancy.tenantId}`}
                   data-testid="room-tenant-avatar-link"
-                  className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold text-sm shrink-0 hover:bg-blue-200 transition-colors"
+                  className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-primary font-semibold text-sm shrink-0 hover:bg-blue-200 transition-colors"
                   aria-label={`Open tenant ${activeOccupancy.tenant.firstName} ${activeOccupancy.tenant.lastName}`}
                 >
                   {activeOccupancy.tenant.firstName[0]}{activeOccupancy.tenant.lastName[0]}
@@ -195,42 +195,42 @@ export default async function RoomDetailPage({
                   <Link
                     href={`/tenants/${activeOccupancy.tenantId}`}
                     data-testid="room-tenant-name-link"
-                    className="font-medium text-slate-800 hover:text-blue-600 transition-colors text-sm"
+                    className="font-medium text-foreground hover:text-primary transition-colors text-sm"
                   >
                     {activeOccupancy.tenant.firstName} {activeOccupancy.tenant.lastName}
                   </Link>
                   {activeOccupancy.tenant.email && (
-                    <p className="text-xs text-slate-500">{activeOccupancy.tenant.email}</p>
+                    <p className="text-xs text-muted-foreground">{activeOccupancy.tenant.email}</p>
                   )}
                 </div>
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-slate-100">
+              <div className="space-y-2 pt-2 border-t border-border">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Lease Start</span>
-                  <span className="font-medium text-slate-700">{formatDate(activeOccupancy.leaseStart)}</span>
+                  <span className="text-muted-foreground">Lease Start</span>
+                  <span className="font-medium text-foreground">{formatDate(activeOccupancy.leaseStart)}</span>
                 </div>
                 {activeOccupancy.leaseEnd && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Lease End</span>
-                    <span className="font-medium text-slate-700">{formatDate(activeOccupancy.leaseEnd)}</span>
+                    <span className="text-muted-foreground">Lease End</span>
+                    <span className="font-medium text-foreground">{formatDate(activeOccupancy.leaseEnd)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Monthly Rent</span>
-                  <span className="font-medium text-slate-700">{formatCurrency(activeOccupancy.monthlyRent)}</span>
+                  <span className="text-muted-foreground">Monthly Rent</span>
+                  <span className="font-medium text-foreground">{formatCurrency(activeOccupancy.monthlyRent)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Rent Due Day</span>
-                  <span className="font-medium text-slate-700">{activeOccupancy.rentDueDay}th of month</span>
+                  <span className="text-muted-foreground">Rent Due Day</span>
+                  <span className="font-medium text-foreground">{activeOccupancy.rentDueDay}th of month</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Payment Grace</span>
-                  <span className="font-medium text-slate-700">{activeOccupancy.paymentGracePeriodDays ?? 5} days</span>
+                  <span className="text-muted-foreground">Payment Grace</span>
+                  <span className="font-medium text-foreground">{activeOccupancy.paymentGracePeriodDays ?? 5} days</span>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-100">
+              <div className="pt-2 border-t border-border">
                 <ContractUpload
                   occupancyId={activeOccupancy.id}
                   contractFileName={activeOccupancy.contractFileName}
@@ -241,9 +241,9 @@ export default async function RoomDetailPage({
             </div>
 
             {/* Deposit */}
-            <div data-testid="room-deposit-card" className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+            <div data-testid="room-deposit-card" className="bg-card border border-border rounded-xl p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-slate-800">Deposit</h2>
+                <h2 className="text-sm font-semibold text-foreground">Deposit</h2>
                 {activeOccupancy.deposit && (
                   <DepositStatusBadge status={activeOccupancy.deposit.status} size="sm" />
                 )}
@@ -253,29 +253,29 @@ export default async function RoomDetailPage({
                 <>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">Required</span>
-                      <span data-testid="deposit-required-value" className="font-semibold text-slate-700">{formatCurrency(activeOccupancy.deposit.required)}</span>
+                      <span className="text-muted-foreground">Required</span>
+                      <span data-testid="deposit-required-value" className="font-semibold text-foreground">{formatCurrency(activeOccupancy.deposit.required)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">Received</span>
-                      <span data-testid="deposit-received-value" className="font-semibold text-green-700">{formatCurrency(activeOccupancy.deposit.received)}</span>
+                      <span className="text-muted-foreground">Received</span>
+                      <span data-testid="deposit-received-value" className="font-semibold text-success">{formatCurrency(activeOccupancy.deposit.received)}</span>
                     </div>
                     {activeOccupancy.deposit.receivedAt && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">Date Received</span>
-                        <span className="text-slate-700">{formatDate(activeOccupancy.deposit.receivedAt)}</span>
+                        <span className="text-muted-foreground">Date Received</span>
+                        <span className="text-foreground">{formatDate(activeOccupancy.deposit.receivedAt)}</span>
                       </div>
                     )}
                   </div>
 
                   {activeOccupancy.deposit.transactions.length > 0 && (
-                    <div className="pt-3 border-t border-slate-100">
-                      <p className="text-xs font-medium text-slate-600 mb-2">Transactions</p>
+                    <div className="pt-3 border-t border-border">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Transactions</p>
                       <div className="space-y-1.5">
                         {activeOccupancy.deposit.transactions.map((tx) => (
                           <div key={tx.id} className="flex justify-between text-xs">
-                            <span className="text-slate-500">{tx.type} · {formatDate(tx.date)}</span>
-                            <span className={`font-medium ${tx.type === "DEDUCTION" ? "text-red-600" : tx.type === "REFUND" ? "text-orange-600" : "text-green-600"}`}>
+                            <span className="text-muted-foreground">{tx.type} · {formatDate(tx.date)}</span>
+                            <span className={`font-medium ${tx.type === "DEDUCTION" ? "text-destructive" : tx.type === "REFUND" ? "text-orange-600" : "text-green-600"}`}>
                               {tx.type === "DEDUCTION" || tx.type === "REFUND" ? "−" : "+"}
                               {formatCurrency(tx.amount)}
                             </span>
@@ -296,37 +296,37 @@ export default async function RoomDetailPage({
                   />
                 </>
               ) : (
-                <p className="text-sm text-slate-500">No deposit record</p>
+                <p className="text-sm text-muted-foreground">No deposit record</p>
               )}
             </div>
 
             {/* Record Payment (current month) */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5">
+            <div className="bg-card border border-border rounded-xl p-5">
               <div className="mb-4">
-                <h2 className="text-sm font-semibold text-slate-800">Record Payment</h2>
-                <p className="text-xs text-slate-500 mt-1">
+                <h2 className="text-sm font-semibold text-foreground">Record Payment</h2>
+                <p className="text-xs text-muted-foreground mt-1">
                   Choose a period and save the payment with the button below.
                 </p>
               </div>
-              <RecordPaymentForm
+              <div id="record-payment" className="scroll-mt-6"><RecordPaymentForm
                 currentYear={currentYear}
                 currentMonth={currentMonth}
                 todayInputValue={todayInputValue}
                 payments={activeOccupancy.payments}
-              />
+              /></div>
             </div>
           </div>
         ) : (
           <div
             data-testid="room-vacant-state"
-            className="bg-white border border-slate-200 rounded-xl p-6"
+            className="bg-card border border-border rounded-xl p-6"
           >
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <h2 className="text-sm font-semibold text-slate-800">
+                <h2 className="text-sm font-semibold text-foreground">
                   No current tenant assigned
                 </h2>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   This room is currently vacant. Add a tenant when you are ready to start a new tenancy.
                 </p>
               </div>
@@ -374,7 +374,7 @@ export default async function RoomDetailPage({
                       <p className={`text-sm font-medium ${isOverdue ? "text-red-700" : "text-amber-700"}`}>
                         Deposit return {isOverdue ? "overdue" : "due soon"}
                       </p>
-                      <p className={`text-xs mt-0.5 ${isOverdue ? "text-red-600" : "text-amber-600"}`}>
+                      <p className={`text-xs mt-0.5 ${isOverdue ? "text-destructive" : "text-amber-600"}`}>
                         {o.tenant.firstName} {o.tenant.lastName} moved out on{" "}
                         {formatDate(o.moveOutDate)} — deposit of{" "}
                         {formatCurrency(summary.outstandingRefund || o.deposit!.required)} should be returned by{" "}

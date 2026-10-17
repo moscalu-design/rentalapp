@@ -1,5 +1,7 @@
 "use client";
 
+import { useId } from "react";
+
 import { useFormStatus } from "react-dom";
 import { createTenant, updateTenant } from "@/actions/tenants";
 import type { Tenant } from "@/generated/prisma/client";
@@ -10,7 +12,7 @@ function SubmitButton({ label }: { label: string }) {
     <button
       type="submit"
       disabled={pending}
-      className="bg-blue-500 hover:bg-blue-600 disabled:opacity-60 text-white font-medium text-sm px-5 py-2.5 rounded-lg transition-colors"
+      className="bg-primary hover:bg-primary disabled:opacity-60 text-white font-medium text-sm px-5 py-2.5 rounded-lg transition-colors"
     >
       {pending ? "Saving…" : label}
     </button>
@@ -18,89 +20,90 @@ function SubmitButton({ label }: { label: string }) {
 }
 
 export function TenantForm({ tenant }: { tenant?: Tenant }) {
+  const formId = useId();
   const action = tenant ? updateTenant.bind(null, tenant.id) : createTenant;
 
   return (
     <form action={action} className="space-y-6 max-w-2xl">
       {/* Personal Details */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 space-y-4">
-        <h2 className="text-sm font-semibold text-slate-700">Personal Details</h2>
+      <div className="bg-card border border-border rounded-xl p-5 sm:p-6 space-y-4">
+        <h2 className="text-sm font-semibold text-foreground">Personal Details</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label htmlFor={`${formId}-firstName`} className="block text-sm font-medium text-foreground mb-1.5">
               First Name <span className="text-red-500">*</span>
             </label>
-            <input
+            <input id={`${formId}-firstName`}
               name="firstName"
               required
               defaultValue={tenant?.firstName}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label htmlFor={`${formId}-lastName`} className="block text-sm font-medium text-foreground mb-1.5">
               Last Name <span className="text-red-500">*</span>
             </label>
-            <input
+            <input id={`${formId}-lastName`}
               name="lastName"
               required
               defaultValue={tenant?.lastName}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            <label htmlFor={`${formId}-email`} className="block text-sm font-medium text-foreground mb-1.5">
               Email <span className="text-red-500">*</span>
             </label>
-            <input
+            <input id={`${formId}-email`}
               name="email"
               type="email"
               required
               defaultValue={tenant?.email}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone</label>
-            <input
+            <label htmlFor={`${formId}-phone`} className="block text-sm font-medium text-foreground mb-1.5">Phone</label>
+            <input id={`${formId}-phone`}
               name="phone"
               type="tel"
               defaultValue={tenant?.phone ?? ""}
               placeholder="+44 7700 000000"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Nationality</label>
-            <input
+            <label htmlFor={`${formId}-nationality`} className="block text-sm font-medium text-foreground mb-1.5">Nationality</label>
+            <input id={`${formId}-nationality`}
               name="nationality"
               defaultValue={tenant?.nationality ?? ""}
               placeholder="British"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Date of Birth</label>
-            <input
+            <label htmlFor={`${formId}-dateOfBirth`} className="block text-sm font-medium text-foreground mb-1.5">Date of Birth</label>
+            <input id={`${formId}-dateOfBirth`}
               name="dateOfBirth"
               type="date"
               defaultValue={tenant?.dateOfBirth ? new Date(tenant.dateOfBirth).toISOString().split("T")[0] : ""}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Status</label>
-            <select
+            <label htmlFor={`${formId}-status`} className="block text-sm font-medium text-foreground mb-1.5">Status</label>
+            <select id={`${formId}-status`}
               name="status"
               defaultValue={tenant?.status ?? "ACTIVE"}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             >
               <option value="ACTIVE">Active</option>
               <option value="PENDING">Pending</option>
@@ -111,27 +114,27 @@ export function TenantForm({ tenant }: { tenant?: Tenant }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">Emergency Contact</label>
-          <input
+          <label htmlFor={`${formId}-emergencyContact`} className="block text-sm font-medium text-foreground mb-1.5">Emergency Contact</label>
+          <input id={`${formId}-emergencyContact`}
             name="emergencyContact"
             defaultValue={tenant?.emergencyContact ?? ""}
             placeholder="Name, phone, relationship"
-            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
           />
         </div>
       </div>
 
       {/* ID & Documents */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 space-y-4">
-        <h2 className="text-sm font-semibold text-slate-700">ID &amp; Documents</h2>
+      <div className="bg-card border border-border rounded-xl p-5 sm:p-6 space-y-4">
+        <h2 className="text-sm font-semibold text-foreground">ID &amp; Documents</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">ID Type</label>
-            <select
+            <label htmlFor={`${formId}-idType`} className="block text-sm font-medium text-foreground mb-1.5">ID Type</label>
+            <select id={`${formId}-idType`}
               name="idType"
               defaultValue={tenant?.idType ?? ""}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             >
               <option value="">— None —</option>
               <option value="PASSPORT">Passport</option>
@@ -141,26 +144,26 @@ export function TenantForm({ tenant }: { tenant?: Tenant }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">ID Reference</label>
-            <input
+            <label htmlFor={`${formId}-idReference`} className="block text-sm font-medium text-foreground mb-1.5">ID Reference</label>
+            <input id={`${formId}-idReference`}
               name="idReference"
               defaultValue={tenant?.idReference ?? ""}
               placeholder="Document number"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
           </div>
         </div>
       </div>
 
       {/* Notes */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6">
-        <label className="block text-sm font-semibold text-slate-700 mb-2">Notes</label>
-        <textarea
+      <div className="bg-card border border-border rounded-xl p-5 sm:p-6">
+        <label htmlFor={`${formId}-notes`} className="block text-sm font-semibold text-foreground mb-2">Notes</label>
+        <textarea id={`${formId}-notes`}
           name="notes"
           defaultValue={tenant?.notes ?? ""}
           rows={3}
           placeholder="Any internal notes about this tenant…"
-          className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent resize-none"
         />
       </div>
 
@@ -168,7 +171,7 @@ export function TenantForm({ tenant }: { tenant?: Tenant }) {
         <SubmitButton label={tenant ? "Save Changes" : "Create Tenant"} />
         <a
           href={tenant ? `/tenants/${tenant.id}` : "/tenants"}
-          className="text-sm text-slate-600 hover:text-slate-800"
+          className="text-sm text-muted-foreground hover:text-foreground"
         >
           Cancel
         </a>

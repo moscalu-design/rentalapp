@@ -32,15 +32,15 @@ type Expense = {
 const CATEGORY_CONFIG: Record<string, { label: string; color: string; bg: string; icon: string }> = {
   ELECTRICITY: { label: "Electricity", color: "text-amber-700",  bg: "bg-amber-50",   icon: "⚡" },
   GAS:         { label: "Gas",         color: "text-orange-700", bg: "bg-orange-50",  icon: "🔥" },
-  WATER:       { label: "Water",       color: "text-blue-700",   bg: "bg-blue-50",    icon: "💧" },
+  WATER:       { label: "Water",       color: "text-primary",   bg: "bg-accent",    icon: "💧" },
   HEATING:     { label: "Heating",     color: "text-red-700",    bg: "bg-red-50",     icon: "🌡️" },
   INTERNET:    { label: "Internet",    color: "text-purple-700", bg: "bg-purple-50",  icon: "📶" },
-  INSURANCE:   { label: "Insurance",   color: "text-green-700",  bg: "bg-green-50",   icon: "🛡️" },
-  MAINTENANCE: { label: "Maintenance", color: "text-slate-700",  bg: "bg-slate-100",  icon: "🔧" },
+  INSURANCE:   { label: "Insurance",   color: "text-success",  bg: "bg-green-50",   icon: "🛡️" },
+  MAINTENANCE: { label: "Maintenance", color: "text-foreground",  bg: "bg-muted",  icon: "🔧" },
   REPAIRS:     { label: "Repairs",     color: "text-rose-700",   bg: "bg-rose-50",    icon: "🔨" },
   CLEANING:    { label: "Cleaning",    color: "text-teal-700",   bg: "bg-teal-50",    icon: "🧹" },
   TAXES:       { label: "Taxes",       color: "text-pink-700",   bg: "bg-pink-50",    icon: "📋" },
-  OTHER:       { label: "Other",       color: "text-slate-600",  bg: "bg-slate-100",  icon: "📎" },
+  OTHER:       { label: "Other",       color: "text-muted-foreground",  bg: "bg-muted",  icon: "📎" },
 };
 
 const MONTH_NAMES = [
@@ -198,24 +198,24 @@ function ExpenseForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} data-testid="expense-form" className="px-5 py-4 border-b border-slate-100 space-y-3">
-      <p className="text-xs font-semibold text-slate-700">
+    <form onSubmit={handleSubmit} data-testid="expense-form" className="px-5 py-4 border-b border-border space-y-3">
+      <p className="text-xs font-semibold text-foreground">
         {editing ? "Edit entry" : "New cost entry"}
       </p>
 
       {error && (
-        <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <div className="text-xs text-destructive bg-red-50 border border-red-200 rounded-lg px-3 py-2">
           {error}
         </div>
       )}
 
       {/* Type toggle */}
-      <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
+      <div className="flex gap-1 bg-muted rounded-lg p-1">
         <button
           type="button"
           onClick={() => { setCostType("one-off"); setShowMore(false); }}
           className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${
-            costType === "one-off" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            costType === "one-off" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           One-time
@@ -224,7 +224,7 @@ function ExpenseForm({
           type="button"
           onClick={() => { setCostType("recurring"); setShowMore(false); }}
           className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors ${
-            costType === "recurring" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            costType === "recurring" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           Monthly recurring
@@ -234,7 +234,7 @@ function ExpenseForm({
       {/* Core row: Category + Amount */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
             Category <span className="text-red-500">*</span>
           </label>
           <select
@@ -242,7 +242,7 @@ function ExpenseForm({
             required
             data-testid="expense-category-select"
             defaultValue={editing?.category ?? "ELECTRICITY"}
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {EXPENSE_CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>
@@ -252,7 +252,7 @@ function ExpenseForm({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
             {costType === "recurring" ? "Amount / month (€)" : "Amount (€)"}
             <span className="text-red-500"> *</span>
           </label>
@@ -265,7 +265,7 @@ function ExpenseForm({
             data-testid="expense-amount-input"
             placeholder="0.00"
             defaultValue={editing?.amount ?? ""}
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       </div>
@@ -273,7 +273,7 @@ function ExpenseForm({
       {/* Date fields: differ by type */}
       {costType === "one-off" ? (
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
             Date <span className="text-red-500">*</span>
           </label>
           <input
@@ -283,13 +283,13 @@ function ExpenseForm({
             data-testid="expense-payment-date-input"
             value={paymentDate}
             onChange={(e) => handlePaymentDateChange(e.target.value)}
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
+            <label className="block text-xs font-medium text-muted-foreground mb-1">
               Starts <span className="text-red-500">*</span>
             </label>
             <input
@@ -297,19 +297,19 @@ function ExpenseForm({
               type="date"
               required
               defaultValue={editing ? toDateInputValue(editing.coverageStart) : firstOfMonthStr()}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
+            <label className="block text-xs font-medium text-muted-foreground mb-1">
               Ends
-              <span className="ml-1 text-slate-400 font-normal">(optional)</span>
+              <span className="ml-1 text-muted-foreground font-normal">(optional)</span>
             </label>
             <input
               name="endDate"
               type="date"
               defaultValue={editing ? toDateInputValue(editing.coverageEnd) : ""}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
         </div>
@@ -320,7 +320,7 @@ function ExpenseForm({
         <button
           type="button"
           onClick={() => setShowMore(true)}
-          className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+          className="text-xs text-muted-foreground hover:text-muted-foreground transition-colors"
         >
           + More details
         </button>
@@ -328,13 +328,13 @@ function ExpenseForm({
 
       {/* Optional fields */}
       {showMore && (
-        <div className="space-y-3 pt-1 border-t border-slate-100">
+        <div className="space-y-3 pt-1 border-t border-border">
           {/* Description + reporting month (one-off only) */}
           <div className={`grid gap-3 ${costType === "one-off" ? "grid-cols-2" : "grid-cols-1"}`}>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
                 Description
-                <span className="ml-1 text-slate-400 font-normal">(optional)</span>
+                <span className="ml-1 text-muted-foreground font-normal">(optional)</span>
               </label>
               <input
                 name="title"
@@ -342,21 +342,21 @@ function ExpenseForm({
                 data-testid="expense-title-input"
                 placeholder="e.g. February electricity bill"
                 defaultValue={editing?.title ?? ""}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
             {costType === "one-off" && (
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
                   Shows under month
-                  <span className="ml-1 text-slate-400 font-normal">(auto)</span>
+                  <span className="ml-1 text-muted-foreground font-normal">(auto)</span>
                 </label>
                 <div className="flex gap-1.5">
                   <select
                     value={reportingMonth}
                     data-testid="expense-reporting-month-select"
                     onChange={(e) => setReportingMonth(Number(e.target.value))}
-                    className="flex-1 border border-slate-200 rounded-lg px-2 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 border border-border rounded-lg px-2 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   >
                     {MONTH_NAMES.slice(1).map((name, i) => (
                       <option key={i + 1} value={i + 1}>{name}</option>
@@ -366,7 +366,7 @@ function ExpenseForm({
                     value={reportingYear}
                     data-testid="expense-reporting-year-select"
                     onChange={(e) => setReportingYear(Number(e.target.value))}
-                    className="w-24 border border-slate-200 rounded-lg px-2 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-24 border border-border rounded-lg px-2 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   >
                     {yearOptions.map((y) => <option key={y} value={y}>{y}</option>)}
                   </select>
@@ -378,9 +378,9 @@ function ExpenseForm({
           {/* Provider + Notes */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
                 Provider
-                <span className="ml-1 text-slate-400 font-normal">(optional)</span>
+                <span className="ml-1 text-muted-foreground font-normal">(optional)</span>
               </label>
               <input
                 name="provider"
@@ -388,13 +388,13 @@ function ExpenseForm({
                 data-testid="expense-provider-input"
                 placeholder="e.g. British Gas"
                 defaultValue={editing?.provider ?? ""}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
                 Notes
-                <span className="ml-1 text-slate-400 font-normal">(optional)</span>
+                <span className="ml-1 text-muted-foreground font-normal">(optional)</span>
               </label>
               <input
                 name="notes"
@@ -402,7 +402,7 @@ function ExpenseForm({
                 data-testid="expense-notes-input"
                 placeholder="Any notes"
                 defaultValue={editing?.notes ?? ""}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           </div>
@@ -410,13 +410,13 @@ function ExpenseForm({
           {/* Receipt (one-off only) */}
           {costType === "one-off" && (
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
                 Receipt
-                <span className="ml-1 text-slate-400 font-normal">(optional, PDF / JPG / PNG, max 4 MB)</span>
+                <span className="ml-1 text-muted-foreground font-normal">(optional, PDF / JPG / PNG, max 4 MB)</span>
               </label>
               {editing?.receiptFileName && !selectedFile && (
-                <p className="text-xs text-slate-500 mb-1.5">
-                  Current: <span className="font-medium text-slate-700">{editing.receiptFileName}</span>
+                <p className="text-xs text-muted-foreground mb-1.5">
+                  Current: <span className="font-medium text-foreground">{editing.receiptFileName}</span>
                 </p>
               )}
               {editing?.receiptFileName && !selectedFile && removeReceipt && (
@@ -437,7 +437,7 @@ function ExpenseForm({
                   type="button"
                   onClick={() => fileRef.current?.click()}
                   data-testid="expense-receipt-choose"
-                  className="text-xs border border-slate-200 rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-50 transition-colors"
+                  className="text-xs border border-border rounded-lg px-3 py-2 text-muted-foreground hover:bg-background transition-colors"
                 >
                   {selectedFile ? "Change file" : "Choose file"}
                 </button>
@@ -446,13 +446,13 @@ function ExpenseForm({
                     type="button"
                     data-testid="expense-receipt-remove"
                     onClick={() => setRemoveReceipt((v) => !v)}
-                    className="text-xs text-red-600 hover:text-red-700 transition-colors"
+                    className="text-xs text-destructive hover:text-red-700 transition-colors"
                   >
                     {removeReceipt ? "Keep receipt" : "Remove receipt"}
                   </button>
                 )}
                 {selectedFile && (
-                  <span className="text-xs text-slate-600 truncate max-w-48">
+                  <span className="text-xs text-muted-foreground truncate max-w-48">
                     {selectedFile.name} ({formatFileSize(selectedFile.size)})
                   </span>
                 )}
@@ -468,7 +468,7 @@ function ExpenseForm({
           type="submit"
           disabled={pending}
           data-testid={editing ? "expense-save-button" : "expense-add-button"}
-          className="bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="bg-primary hover:bg-primary disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
           {pending ? (uploadProgress ?? "Saving…") : editing ? "Save changes" : "Add entry"}
         </button>
@@ -476,7 +476,7 @@ function ExpenseForm({
           type="button"
           onClick={onCancel}
           disabled={pending}
-          className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           Cancel
         </button>
@@ -505,7 +505,7 @@ function RecurringCostRow({
   return (
     <div
       data-testid={`expense-row-${expense.id}`}
-      className="group flex items-center justify-between gap-3 px-5 py-3.5 hover:bg-slate-50 transition-colors"
+      className="group flex items-center justify-between gap-3 px-5 py-3.5 hover:bg-background transition-colors"
     >
       <div className="flex items-center gap-3 min-w-0">
         <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-base shrink-0 ${cat.bg}`}>
@@ -513,12 +513,12 @@ function RecurringCostRow({
         </span>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium text-slate-800">{cat.label}</p>
+            <p className="text-sm font-medium text-foreground">{cat.label}</p>
             {expense.provider && (
-              <span className="text-xs text-slate-400">· {expense.provider}</span>
+              <span className="text-xs text-muted-foreground">· {expense.provider}</span>
             )}
             {ended && (
-              <span className="text-xs font-medium text-slate-400 border border-slate-200 rounded-full px-2 py-0.5">
+              <span className="text-xs font-medium text-muted-foreground border border-border rounded-full px-2 py-0.5">
                 Ended
               </span>
             )}
@@ -528,7 +528,7 @@ function RecurringCostRow({
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Since {formatMonthYear(expense.coverageStart)}
             {expense.coverageEnd && ` · until ${formatMonthYear(expense.coverageEnd)}`}
             {expense.notes && ` · ${expense.notes}`}
@@ -538,15 +538,15 @@ function RecurringCostRow({
 
       <div className="flex items-center gap-3 shrink-0">
         <div className="text-right">
-          <p className="text-sm font-bold text-slate-900">{formatCurrency(expense.amount)}</p>
-          <p className="text-xs text-slate-400">/month</p>
+          <p className="text-sm font-bold text-foreground">{formatCurrency(expense.amount)}</p>
+          <p className="text-xs text-muted-foreground">/month</p>
         </div>
         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             type="button"
             data-testid={`expense-edit-${expense.id}`}
             onClick={() => onEdit(expense)}
-            className="text-xs text-slate-400 hover:text-blue-600 transition-colors px-1"
+            className="text-xs text-muted-foreground hover:text-primary transition-colors px-1"
           >
             Edit
           </button>
@@ -554,7 +554,7 @@ function RecurringCostRow({
             type="button"
             data-testid={`expense-delete-${expense.id}`}
             onClick={() => onDelete(expense.id)}
-            className="text-xs text-slate-400 hover:text-red-500 transition-colors px-1"
+            className="text-xs text-muted-foreground hover:text-red-500 transition-colors px-1"
           >
             ✕
           </button>
@@ -580,28 +580,28 @@ function ExpenseRow({
   return (
     <div
       data-testid={`expense-row-${expense.id}`}
-      className="group flex items-center justify-between gap-3 px-5 py-3 hover:bg-slate-50 transition-colors"
+      className="group flex items-center justify-between gap-3 px-5 py-3 hover:bg-background transition-colors"
     >
       <div className="flex items-center gap-3 min-w-0">
         <span className={`w-7 h-7 rounded-md flex items-center justify-center text-sm shrink-0 ${cat.bg}`}>
           {cat.icon}
         </span>
         <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-800 leading-snug truncate max-w-64">{expense.title}</p>
+          <p className="text-sm font-medium text-foreground leading-snug truncate max-w-64">{expense.title}</p>
           <div className="flex flex-wrap items-center gap-x-2 mt-0.5">
-            <span className="text-xs text-slate-400">{formatDate(expense.paymentDate)}</span>
+            <span className="text-xs text-muted-foreground">{formatDate(expense.paymentDate)}</span>
             {expense.provider && (
-              <span className="text-xs text-slate-400">· {expense.provider}</span>
+              <span className="text-xs text-muted-foreground">· {expense.provider}</span>
             )}
             {expense.notes && (
-              <span className="text-xs text-slate-400 italic truncate max-w-40">· {expense.notes}</span>
+              <span className="text-xs text-muted-foreground italic truncate max-w-40">· {expense.notes}</span>
             )}
           </div>
         </div>
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
-        <p className="text-sm font-bold text-slate-900">{formatCurrency(expense.amount)}</p>
+        <p className="text-sm font-bold text-foreground">{formatCurrency(expense.amount)}</p>
 
         {expense.receiptFileName && (
           <a
@@ -610,7 +610,7 @@ function ExpenseRow({
             target="_blank"
             rel="noopener noreferrer"
             title={`Receipt: ${expense.receiptFileName}`}
-            className="text-blue-400 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100"
+            className="text-blue-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
               <path fillRule="evenodd" d="M15.621 4.379a3 3 0 00-4.242 0l-7 7a3 3 0 004.241 4.243h.001l.497-.5a.75.75 0 011.064 1.057l-.498.501-.002.002a4.5 4.5 0 01-6.364-6.364l7-7a4.5 4.5 0 016.368 6.36l-3.455 3.553A2.625 2.625 0 119.52 9.52l3.45-3.451a.75.75 0 111.061 1.06l-3.45 3.451a1.125 1.125 0 001.587 1.595l3.454-3.553a3 3 0 000-4.242z" clipRule="evenodd" />
@@ -623,7 +623,7 @@ function ExpenseRow({
             type="button"
             data-testid={`expense-edit-${expense.id}`}
             onClick={() => onEdit(expense)}
-            className="text-xs text-slate-400 hover:text-blue-600 transition-colors px-1"
+            className="text-xs text-muted-foreground hover:text-primary transition-colors px-1"
           >
             Edit
           </button>
@@ -631,7 +631,7 @@ function ExpenseRow({
             type="button"
             data-testid={`expense-delete-${expense.id}`}
             onClick={() => onDelete(expense.id)}
-            className="text-xs text-slate-400 hover:text-red-500 transition-colors px-1"
+            className="text-xs text-muted-foreground hover:text-red-500 transition-colors px-1"
           >
             ✕
           </button>
@@ -662,19 +662,19 @@ function MonthGroup({
   const total = expenses.reduce((sum, e) => sum + e.amount, 0);
 
   return (
-    <div className="border-b border-slate-100 last:border-b-0">
+    <div className="border-b border-border last:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         data-testid={`expense-month-group-${year}-${String(month).padStart(2, "0")}`}
-        className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors text-left"
+        className="w-full flex items-center justify-between px-5 py-3 hover:bg-background transition-colors text-left"
       >
         <div className="flex items-center gap-3">
-          <span className={`transition-transform duration-150 text-slate-400 text-xs ${open ? "rotate-90" : "rotate-0"}`}>▶</span>
-          <span className="text-sm font-medium text-slate-800">{MONTH_NAMES[month]} {year}</span>
-          <span className="text-xs text-slate-400">{expenses.length} {expenses.length === 1 ? "entry" : "entries"}</span>
+          <span className={`transition-transform duration-150 text-muted-foreground text-xs ${open ? "rotate-90" : "rotate-0"}`}>▶</span>
+          <span className="text-sm font-medium text-foreground">{MONTH_NAMES[month]} {year}</span>
+          <span className="text-xs text-muted-foreground">{expenses.length} {expenses.length === 1 ? "entry" : "entries"}</span>
         </div>
-        <span className="text-sm font-semibold text-slate-700">{formatCurrency(total)}</span>
+        <span className="text-sm font-semibold text-foreground">{formatCurrency(total)}</span>
       </button>
 
       {open && (
@@ -773,7 +773,7 @@ export function PropertyExpensesSection({
 
       {/* Edit form (floats above sections when editing) */}
       {isEditing && formSlot?.expense && (
-        <div className="bg-white border border-slate-200 rounded-xl">
+        <div className="bg-card border border-border rounded-xl">
           <ExpenseForm
             propertyId={propertyId}
             editing={formSlot.expense}
@@ -784,19 +784,19 @@ export function PropertyExpensesSection({
       )}
 
       {/* ── Recurring Fixed Costs ───────────────────────────────────────── */}
-      <div className="bg-white border border-slate-200 rounded-xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+      <div className="bg-card border border-border rounded-xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div>
-            <h2 className="text-sm font-semibold text-slate-800">Recurring Fixed Costs</h2>
+            <h2 className="text-sm font-semibold text-foreground">Recurring Fixed Costs</h2>
             {recurringMonthlyTotal > 0 && (
-              <p className="text-xs text-slate-500 mt-0.5">{formatCurrency(recurringMonthlyTotal)}/month active</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{formatCurrency(recurringMonthlyTotal)}/month active</p>
             )}
           </div>
           {!isAddingRecurring && !isEditing && (
             <button
               onClick={() => setFormSlot({ type: "add-recurring" })}
               data-testid="expense-add-toggle"
-              className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              className="text-xs text-primary hover:text-primary font-medium"
             >
               + Add recurring
             </button>
@@ -815,11 +815,11 @@ export function PropertyExpensesSection({
 
         {sortedRecurring.length === 0 && !isAddingRecurring ? (
           <div className="px-5 py-6 text-center">
-            <p className="text-xs text-slate-400">No recurring costs yet.</p>
-            <p className="text-xs text-slate-400 mt-0.5">Add fixed monthly costs like internet, insurance, or cleaning.</p>
+            <p className="text-xs text-muted-foreground">No recurring costs yet.</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Add fixed monthly costs like internet, insurance, or cleaning.</p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-border">
             {sortedRecurring.map((expense) => (
               <RecurringCostRow
                 key={expense.id}
@@ -834,12 +834,12 @@ export function PropertyExpensesSection({
       </div>
 
       {/* ── Variable / One-off Costs ────────────────────────────────────── */}
-      <div className="bg-white border border-slate-200 rounded-xl">
-        <div className="flex items-start justify-between px-5 py-4 border-b border-slate-100">
+      <div className="bg-card border border-border rounded-xl">
+        <div className="flex items-start justify-between px-5 py-4 border-b border-border">
           <div>
-            <h2 className="text-sm font-semibold text-slate-800">Variable Costs</h2>
+            <h2 className="text-sm font-semibold text-foreground">Variable Costs</h2>
             {oneOffExpenses.length > 0 && (
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {formatCurrency(thisMonthOneOff)} one-off this month
               </p>
             )}
@@ -847,7 +847,7 @@ export function PropertyExpensesSection({
           {!isAddingOneOff && !isEditing && (
             <button
               onClick={() => setFormSlot({ type: "add-oneoff" })}
-              className="text-xs text-blue-600 hover:text-blue-700 font-medium shrink-0 ml-4"
+              className="text-xs text-primary hover:text-primary font-medium shrink-0 ml-4"
             >
               + Add entry
             </button>
@@ -865,7 +865,7 @@ export function PropertyExpensesSection({
         )}
 
         {oneOffExpenses.length === 0 && !isAddingOneOff ? (
-          <p className="text-xs text-slate-400 text-center py-6">
+          <p className="text-xs text-muted-foreground text-center py-6">
             No variable cost entries yet. Add bills, repairs, or other one-off costs.
           </p>
         ) : (

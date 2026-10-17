@@ -68,14 +68,14 @@ export default async function TenantDetailPage({
                 <Link
                   href={`/properties/${activeOccupancy.room.propertyId}`}
                   data-testid="tenant-active-property-link"
-                  className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="text-sm font-medium text-muted-foreground border border-border px-3 py-2 rounded-lg hover:bg-background transition-colors"
                 >
                   Property
                 </Link>
                 <Link
                   href={`/rooms/${activeOccupancy.roomId}`}
                   data-testid="tenant-active-room-link"
-                  className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="text-sm font-medium text-muted-foreground border border-border px-3 py-2 rounded-lg hover:bg-background transition-colors"
                 >
                   Room
                 </Link>
@@ -85,7 +85,7 @@ export default async function TenantDetailPage({
             {!activeOccupancy && <DeleteTenantForm tenantId={id} />}
             <Link
               href={`/tenants/${id}/edit`}
-              className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+              className="text-sm font-medium text-muted-foreground border border-border px-3 py-2 rounded-lg hover:bg-background transition-colors"
             >
               Edit
             </Link>
@@ -96,121 +96,121 @@ export default async function TenantDetailPage({
       <div className="flex-1 p-4 sm:p-6 space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Profile */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+          <div className="bg-card border border-border rounded-xl p-5 space-y-4">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg shrink-0">
+              <div className="w-14 h-14 rounded-full bg-accent flex items-center justify-center text-primary font-bold text-lg shrink-0">
                 {tenant.firstName[0]}{tenant.lastName[0]}
               </div>
               <div>
-                <h2 className="font-semibold text-slate-900">{tenant.firstName} {tenant.lastName}</h2>
-                <p className="text-sm text-slate-500">{tenant.email}</p>
+                <h2 className="font-semibold text-foreground">{tenant.firstName} {tenant.lastName}</h2>
+                <p className="text-sm text-muted-foreground">{tenant.email}</p>
               </div>
             </div>
 
-            <div className="space-y-2 pt-2 border-t border-slate-100 text-sm">
+            <div className="space-y-2 pt-2 border-t border-border text-sm">
               {tenant.phone && (
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Phone</span>
-                  <span className="text-slate-700">{tenant.phone}</span>
+                  <span className="text-muted-foreground">Phone</span>
+                  <span className="text-foreground">{tenant.phone}</span>
                 </div>
               )}
               {tenant.nationality && (
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Nationality</span>
-                  <span className="text-slate-700">{tenant.nationality}</span>
+                  <span className="text-muted-foreground">Nationality</span>
+                  <span className="text-foreground">{tenant.nationality}</span>
                 </div>
               )}
               {tenant.dateOfBirth && (
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Date of Birth</span>
-                  <span className="text-slate-700">{formatDate(tenant.dateOfBirth)}</span>
+                  <span className="text-muted-foreground">Date of Birth</span>
+                  <span className="text-foreground">{formatDate(tenant.dateOfBirth)}</span>
                 </div>
               )}
               {tenant.emergencyContact && (
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-slate-500">Emergency Contact</span>
-                  <span className="text-slate-700">{tenant.emergencyContact}</span>
+                  <span className="text-muted-foreground">Emergency Contact</span>
+                  <span className="text-foreground">{tenant.emergencyContact}</span>
                 </div>
               )}
               {tenant.idType && (
                 <div className="flex justify-between">
-                  <span className="text-slate-500">ID</span>
-                  <span className="text-slate-700">{tenant.idType.replace("_", " ")} {tenant.idReference ? `· ${tenant.idReference}` : ""}</span>
+                  <span className="text-muted-foreground">ID</span>
+                  <span className="text-foreground">{tenant.idType.replace("_", " ")} {tenant.idReference ? `· ${tenant.idReference}` : ""}</span>
                 </div>
               )}
             </div>
 
-            <div className="pt-2 border-t border-slate-100">
-              <p className="text-xs text-slate-500">Total Paid (all time)</p>
-              <p className="text-xl font-bold text-slate-800 mt-0.5">{formatCurrency(totalPaid)}</p>
+            <div className="pt-2 border-t border-border">
+              <p className="text-xs text-muted-foreground">Total Paid (all time)</p>
+              <p className="text-xl font-bold text-foreground mt-0.5">{formatCurrency(totalPaid)}</p>
             </div>
           </div>
 
           {/* Current Tenancy */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-3">
-            <h2 className="text-sm font-semibold text-slate-800">Current Tenancy</h2>
+          <div className="bg-card border border-border rounded-xl p-5 space-y-3">
+            <h2 className="text-sm font-semibold text-foreground">Current Tenancy</h2>
             {activeOccupancy ? (
               <>
                 <div className="text-sm space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Property</span>
-                    <Link href={`/properties/${activeOccupancy.room.propertyId}`} className="text-blue-600 hover:text-blue-700 font-medium">
+                    <span className="text-muted-foreground">Property</span>
+                    <Link href={`/properties/${activeOccupancy.room.propertyId}`} className="text-primary hover:text-primary font-medium">
                       {activeOccupancy.room.property.name}
                     </Link>
                   </div>
                   {activeOccupancy.room.isDefaultWholePropertyRoom ? (
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Unit</span>
-                      <span className="text-slate-700 font-medium">Whole property</span>
+                      <span className="text-muted-foreground">Unit</span>
+                      <span className="text-foreground font-medium">Whole property</span>
                     </div>
                   ) : (
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Room</span>
-                      <Link href={`/rooms/${activeOccupancy.roomId}`} className="text-blue-600 hover:text-blue-700 font-medium">
+                      <span className="text-muted-foreground">Room</span>
+                      <Link href={`/rooms/${activeOccupancy.roomId}`} className="text-primary hover:text-primary font-medium">
                         {activeOccupancy.room.name}
                       </Link>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Lease Start</span>
-                    <span className="text-slate-700">{formatDate(activeOccupancy.leaseStart)}</span>
+                    <span className="text-muted-foreground">Lease Start</span>
+                    <span className="text-foreground">{formatDate(activeOccupancy.leaseStart)}</span>
                   </div>
                   {activeOccupancy.leaseEnd && (
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Lease End</span>
-                      <span className="text-slate-700">{formatDate(activeOccupancy.leaseEnd)}</span>
+                      <span className="text-muted-foreground">Lease End</span>
+                      <span className="text-foreground">{formatDate(activeOccupancy.leaseEnd)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Monthly Rent</span>
-                    <span className="font-semibold text-slate-700">{formatCurrency(activeOccupancy.monthlyRent)}</span>
+                    <span className="text-muted-foreground">Monthly Rent</span>
+                    <span className="font-semibold text-foreground">{formatCurrency(activeOccupancy.monthlyRent)}</span>
                   </div>
                 </div>
 
                 {activeOccupancy.deposit && (
-                  <div className="pt-3 border-t border-slate-100">
+                  <div className="pt-3 border-t border-border">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-slate-700">Deposit</span>
+                      <span className="text-sm font-medium text-foreground">Deposit</span>
                       <DepositStatusBadge status={activeOccupancy.deposit.status} size="sm" />
                     </div>
-                    <div className="text-sm text-slate-600">
+                    <div className="text-sm text-muted-foreground">
                       {formatCurrency(activeOccupancy.deposit.received)} / {formatCurrency(activeOccupancy.deposit.required)} received
                     </div>
                   </div>
                 )}
               </>
             ) : (
-              <p className="text-sm text-slate-500">No active tenancy.</p>
+              <p className="text-sm text-muted-foreground">No active tenancy.</p>
             )}
           </div>
 
           {/* Notes */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5">
-            <h2 className="text-sm font-semibold text-slate-800 mb-3">Notes</h2>
+          <div className="bg-card border border-border rounded-xl p-5">
+            <h2 className="text-sm font-semibold text-foreground mb-3">Notes</h2>
             {tenant.notes ? (
-              <p className="text-sm text-slate-600 whitespace-pre-wrap">{tenant.notes}</p>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{tenant.notes}</p>
             ) : (
-              <p className="text-sm text-slate-400">No notes.</p>
+              <p className="text-sm text-muted-foreground">No notes.</p>
             )}
           </div>
         </div>
@@ -220,23 +220,23 @@ export default async function TenantDetailPage({
 
         {/* Payment history */}
         {activeOccupancy && activeOccupancy.payments.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-xl">
-            <div className="px-5 py-4 border-b border-slate-100">
-              <h2 className="text-sm font-semibold text-slate-800">Payment History</h2>
+          <div className="bg-card border border-border rounded-xl">
+            <div className="px-5 py-4 border-b border-border">
+              <h2 className="text-sm font-semibold text-foreground">Payment History</h2>
             </div>
 
             {/* Mobile list */}
-            <div className="divide-y divide-slate-100 md:hidden">
+            <div className="divide-y divide-border md:hidden">
               {activeOccupancy.payments.map((p) => (
                 <div key={p.id} className="px-4 py-3 flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-800">{formatMonthYear(p.periodYear, p.periodMonth)}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">
+                    <p className="text-sm font-medium text-foreground">{formatMonthYear(p.periodYear, p.periodMonth)}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {formatCurrency(p.amountDue)} due
                       {p.amountPaid > 0 ? ` · ${formatCurrency(p.amountPaid)} paid` : ""}
                     </p>
                     {p.paidAt && (
-                      <p className="text-xs text-slate-400 mt-0.5">Paid {formatDate(p.paidAt)}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Paid {formatDate(p.paidAt)}</p>
                     )}
                   </div>
                   <PaymentStatusBadge status={computePaymentStatus(p)} size="sm" />
@@ -248,21 +248,21 @@ export default async function TenantDetailPage({
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100">
-                    <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Period</th>
-                    <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Due</th>
-                    <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Paid</th>
-                    <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Date Paid</th>
-                    <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Status</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Period</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Due</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Paid</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Date Paid</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border">
                   {activeOccupancy.payments.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50">
-                      <td className="px-5 py-3 font-medium text-slate-800">{formatMonthYear(p.periodYear, p.periodMonth)}</td>
-                      <td className="px-5 py-3 text-slate-700">{formatCurrency(p.amountDue)}</td>
-                      <td className="px-5 py-3 text-slate-700">{p.amountPaid > 0 ? formatCurrency(p.amountPaid) : "—"}</td>
-                      <td className="px-5 py-3 text-slate-500">{formatDate(p.paidAt)}</td>
+                    <tr key={p.id} className="hover:bg-background">
+                      <td className="px-5 py-3 font-medium text-foreground">{formatMonthYear(p.periodYear, p.periodMonth)}</td>
+                      <td className="px-5 py-3 text-foreground">{formatCurrency(p.amountDue)}</td>
+                      <td className="px-5 py-3 text-foreground">{p.amountPaid > 0 ? formatCurrency(p.amountPaid) : "—"}</td>
+                      <td className="px-5 py-3 text-muted-foreground">{formatDate(p.paidAt)}</td>
                       <td className="px-5 py-3"><PaymentStatusBadge status={computePaymentStatus(p)} size="sm" /></td>
                     </tr>
                   ))}
@@ -274,11 +274,11 @@ export default async function TenantDetailPage({
 
         {/* Past tenancies */}
         {pastOccupancies.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-xl p-5">
-            <h2 className="text-sm font-semibold text-slate-800 mb-3">Past Tenancies</h2>
+          <div className="bg-card border border-border rounded-xl p-5">
+            <h2 className="text-sm font-semibold text-foreground mb-3">Past Tenancies</h2>
             <div className="space-y-2">
               {pastOccupancies.map((occ) => (
-                <div key={occ.id} className="flex justify-between text-sm py-2 border-b border-slate-100 last:border-0">
+                <div key={occ.id} className="flex justify-between text-sm py-2 border-b border-border last:border-0">
                   <div>
                     <Link
                       href={
@@ -286,7 +286,7 @@ export default async function TenantDetailPage({
                           ? `/properties/${occ.room.propertyId}`
                           : `/rooms/${occ.roomId}`
                       }
-                      className="font-medium text-slate-700 hover:text-blue-600"
+                      className="font-medium text-foreground hover:text-primary"
                     >
                       {occ.room.property.name}
                       {occ.room.isDefaultWholePropertyRoom
@@ -294,7 +294,7 @@ export default async function TenantDetailPage({
                         : ` · ${occ.room.name}`}
                     </Link>
                   </div>
-                  <div className="text-slate-500">
+                  <div className="text-muted-foreground">
                     {formatDate(occ.leaseStart)} → {occ.moveOutDate ? formatDate(occ.moveOutDate) : "—"}
                   </div>
                 </div>

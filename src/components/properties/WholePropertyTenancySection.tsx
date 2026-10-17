@@ -19,7 +19,7 @@ function AssignSubmitButton() {
       type="submit"
       disabled={pending}
       data-testid="whole-property-assign-submit"
-      className="bg-blue-500 hover:bg-blue-600 disabled:opacity-60 text-white font-medium text-sm px-5 py-2.5 rounded-lg transition-colors"
+      className="bg-primary hover:bg-primary disabled:opacity-60 text-white font-medium text-sm px-5 py-2.5 rounded-lg transition-colors"
     >
       {pending ? "Assigning…" : "Assign Tenant"}
     </button>
@@ -114,7 +114,7 @@ export function WholePropertyAssignTenant({
         type="button"
         onClick={() => setIsOpen(true)}
         data-testid="whole-property-add-tenant-button"
-        className="inline-flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm px-5 py-2.5 rounded-lg transition-colors"
+        className="inline-flex items-center justify-center bg-primary hover:bg-primary text-white font-medium text-sm px-5 py-2.5 rounded-lg transition-colors"
       >
         Add Tenant
       </button>
@@ -126,13 +126,13 @@ export function WholePropertyAssignTenant({
         >
           <div
             data-testid="whole-property-add-tenant-modal"
-            className="w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl"
+            className="w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-2xl bg-card shadow-2xl sm:rounded-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
+            <div className="flex items-start justify-between gap-4 border-b border-border px-6 py-5">
               <div>
-                <h2 className="text-lg font-semibold text-slate-900">Add Tenant</h2>
-                <p className="text-sm text-slate-500 mt-1">
+                <h2 className="text-lg font-semibold text-foreground">Add Tenant</h2>
+                <p className="text-sm text-muted-foreground mt-1">
                   Start a tenancy for the whole property.
                 </p>
               </div>
@@ -140,7 +140,7 @@ export function WholePropertyAssignTenant({
                 type="button"
                 onClick={() => setIsOpen(false)}
                 aria-label="Close"
-                className="p-1 -mr-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0"
+                className="p-1 -mr-1 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -149,14 +149,14 @@ export function WholePropertyAssignTenant({
             </div>
 
             <div className="px-6 pt-5">
-              <div className="inline-flex rounded-lg bg-slate-100 p-1">
+              <div className="inline-flex rounded-lg bg-muted p-1">
                 <button
                   type="button"
                   onClick={() => setMode("assign")}
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     mode === "assign"
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Assign Existing
@@ -166,8 +166,8 @@ export function WholePropertyAssignTenant({
                   onClick={() => setMode("create")}
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     mode === "create"
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Create New
@@ -185,7 +185,7 @@ export function WholePropertyAssignTenant({
                   <input type="hidden" name="status" value="ACTIVE" />
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Search Tenant
                     </label>
                     <input
@@ -193,12 +193,12 @@ export function WholePropertyAssignTenant({
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Search by name or email"
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Tenant <span className="text-red-500">*</span>
                     </label>
                     <select
@@ -207,7 +207,7 @@ export function WholePropertyAssignTenant({
                       value={selectedTenantId}
                       onChange={(event) => setSelectedTenantId(event.target.value)}
                       data-testid="whole-property-tenant-select"
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     >
                       <option value="">— Select Tenant —</option>
                       {filteredTenants.map((tenant) => (
@@ -219,7 +219,7 @@ export function WholePropertyAssignTenant({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Lease Start <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -227,23 +227,23 @@ export function WholePropertyAssignTenant({
                       name="leaseStart"
                       required
                       defaultValue={todayInputValue}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Lease End
                     </label>
                     <input
                       type="date"
                       name="leaseEnd"
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Monthly Rent (€) <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -254,12 +254,12 @@ export function WholePropertyAssignTenant({
                       min="0"
                       defaultValue={monthlyRent}
                       data-testid="whole-property-monthly-rent"
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Deposit Required (€) <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -269,12 +269,12 @@ export function WholePropertyAssignTenant({
                       step="0.01"
                       min="0"
                       defaultValue={monthlyRent}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Rent Due Day
                     </label>
                     <input
@@ -283,12 +283,12 @@ export function WholePropertyAssignTenant({
                       min="1"
                       max="28"
                       defaultValue={1}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Payment Grace Period (days)
                     </label>
                     <input
@@ -297,19 +297,19 @@ export function WholePropertyAssignTenant({
                       min="0"
                       step="1"
                       defaultValue={5}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Move-in Date
-                      <span className="ml-1 text-slate-400 font-normal">(optional)</span>
+                      <span className="ml-1 text-muted-foreground font-normal">(optional)</span>
                     </label>
                     <input
                       type="date"
                       name="moveInDate"
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
 
@@ -317,7 +317,7 @@ export function WholePropertyAssignTenant({
                     <button
                       type="button"
                       onClick={() => setIsOpen(false)}
-                      className="text-sm text-slate-600 hover:text-slate-800 transition-colors"
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                       Cancel
                     </button>
@@ -333,47 +333,47 @@ export function WholePropertyAssignTenant({
                   <input type="hidden" name="status" value="ACTIVE" />
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       First Name <span className="text-red-500">*</span>
                     </label>
-                    <input name="firstName" required className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input name="firstName" required className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Last Name <span className="text-red-500">*</span>
                     </label>
-                    <input name="lastName" required className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input name="lastName" required className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Email <span className="text-red-500">*</span>
                     </label>
-                    <input name="email" type="email" required className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input name="email" type="email" required className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone</label>
-                    <input name="phone" type="tel" className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <label className="block text-sm font-medium text-foreground mb-1.5">Phone</label>
+                    <input name="phone" type="tel" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Nationality</label>
-                    <input name="nationality" className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <label className="block text-sm font-medium text-foreground mb-1.5">Nationality</label>
+                    <input name="nationality" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Notes</label>
-                    <textarea name="notes" rows={3} className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <label className="block text-sm font-medium text-foreground mb-1.5">Notes</label>
+                    <textarea name="notes" rows={3} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring" />
                   </div>
 
                   {createState.error && (
-                    <p className="md:col-span-2 text-sm text-red-600">{createState.error}</p>
+                    <p className="md:col-span-2 text-sm text-destructive">{createState.error}</p>
                   )}
 
                   {createState.success && createState.tenant && (
-                    <p className="md:col-span-2 text-sm text-green-700">
+                    <p className="md:col-span-2 text-sm text-success">
                       {createState.tenant.firstName} {createState.tenant.lastName} created. Switch back to “Assign Existing” to start the tenancy.
                     </p>
                   )}
@@ -382,7 +382,7 @@ export function WholePropertyAssignTenant({
                     <button
                       type="button"
                       onClick={() => setMode("assign")}
-                      className="text-sm text-slate-600 hover:text-slate-800 transition-colors"
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                       Back to assignment
                     </button>

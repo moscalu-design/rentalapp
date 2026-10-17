@@ -49,11 +49,11 @@ export function SettingsExportButton() {
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6">
+    <div className="bg-card border border-border rounded-xl p-5 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-slate-800">Export account data</h2>
-          <p className="mt-1 text-sm text-slate-600">
+          <h2 className="text-sm font-semibold text-foreground">Export account data</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Download a ZIP with CSV files and uploaded documents for this account.
           </p>
           <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
@@ -66,7 +66,7 @@ export function SettingsExportButton() {
           data-testid="settings-export-zip"
           onClick={handleExport}
           disabled={isExporting}
-          className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isExporting ? "Preparing..." : "Export ZIP"}
         </button>

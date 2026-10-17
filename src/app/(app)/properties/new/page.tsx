@@ -12,7 +12,7 @@ export default function NewPropertyPage() {
           <Link
             href="/properties"
             data-testid="new-property-list-link"
-            className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+            className="text-sm font-medium text-muted-foreground border border-border px-3 py-2 rounded-lg hover:bg-background transition-colors"
           >
             Properties
           </Link>

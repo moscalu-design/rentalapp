@@ -42,35 +42,35 @@ export function PropertyMortgageSummary({
   const nearestPayoff = nearestPayoffDate(mortgages);
 
   return (
-    <div data-testid="property-mortgage-summary" className="bg-white border border-slate-200 rounded-xl p-5">
+    <div data-testid="property-mortgage-summary" className="bg-card border border-border rounded-xl p-5">
       <div className="flex items-start justify-between gap-4">
-        <h2 className="text-sm font-semibold text-slate-800">Mortgages</h2>
+        <h2 className="text-sm font-semibold text-foreground">Mortgages</h2>
         <Link
           href={`/properties/${propertyId}/mortgages`}
-          className="text-xs text-blue-600 hover:text-blue-700 font-medium shrink-0"
+          className="text-xs text-primary hover:text-primary font-medium shrink-0"
         >
           View all →
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-        <div className="bg-white border border-slate-200 rounded-xl px-4 py-3">
-          <p className="text-lg font-bold text-slate-900">{mortgages.length}</p>
-          <p className="text-xs text-slate-500 mt-0.5">Mortgages</p>
+      <dl className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4 mt-4">
+        <div className="min-w-0 py-1">
+          <dt className="text-xs text-muted-foreground">Mortgages</dt>
+          <dd className="mt-1 text-lg font-bold text-foreground">{mortgages.length}</dd>
         </div>
-        <div className="bg-white border border-slate-200 rounded-xl px-4 py-3">
-          <p className="text-lg font-bold text-slate-900">{formatCurrency(totalMonthlyOutflow)}</p>
-          <p className="text-xs text-slate-500 mt-0.5">Monthly outflow</p>
+        <div className="min-w-0 py-1">
+          <dt className="text-xs text-muted-foreground">Monthly outflow</dt>
+          <dd className="mt-1 text-lg font-bold text-foreground">{formatCurrency(totalMonthlyOutflow)}</dd>
         </div>
-        <div className="bg-white border border-slate-200 rounded-xl px-4 py-3">
-          <p className="text-lg font-bold text-slate-900">{formatCurrency(totalOutstanding)}</p>
-          <p className="text-xs text-slate-500 mt-0.5">Outstanding balance</p>
+        <div className="min-w-0 py-1">
+          <dt className="text-xs text-muted-foreground">Outstanding balance</dt>
+          <dd className="mt-1 text-lg font-bold text-foreground">{formatCurrency(totalOutstanding)}</dd>
         </div>
-        <div className="bg-white border border-slate-200 rounded-xl px-4 py-3">
-          <p className="text-lg font-bold text-slate-900">{formatMonthYear(nearestPayoff)}</p>
-          <p className="text-xs text-slate-500 mt-0.5">Nearest payoff</p>
+        <div className="min-w-0 py-1">
+          <dt className="text-xs text-muted-foreground">Nearest payoff</dt>
+          <dd className="mt-1 text-lg font-bold text-foreground">{formatMonthYear(nearestPayoff)}</dd>
         </div>
-      </div>
+      </dl>
     </div>
   );
 }

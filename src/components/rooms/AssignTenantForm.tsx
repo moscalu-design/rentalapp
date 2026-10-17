@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { useId, useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import {
   createTenantForAssignment,
@@ -18,7 +18,7 @@ function AssignSubmitButton() {
       type="submit"
       disabled={pending}
       data-testid="assign-tenant-submit"
-      className="bg-blue-500 hover:bg-blue-600 disabled:opacity-60 text-white font-medium text-sm px-5 py-2.5 rounded-lg transition-colors"
+      className="bg-primary hover:bg-primary disabled:opacity-60 text-white font-medium text-sm px-5 py-2.5 rounded-lg transition-colors"
     >
       {pending ? "Assigning…" : "Assign Tenant"}
     </button>
@@ -58,6 +58,7 @@ export function AssignTenantForm({
   defaultDeposit,
   todayInputValue,
 }: AssignTenantFormProps) {
+  const formId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<"assign" | "create">(
     tenants.length > 0 ? "assign" : "create"
@@ -120,7 +121,7 @@ export function AssignTenantForm({
         type="button"
         data-testid="room-add-tenant-button"
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm px-5 py-2.5 rounded-lg transition-colors"
+        className="inline-flex items-center justify-center bg-primary hover:bg-primary text-white font-medium text-sm px-5 py-2.5 rounded-lg transition-colors"
       >
         Add Tenant
       </button>
@@ -132,13 +133,13 @@ export function AssignTenantForm({
         >
           <div
             data-testid="add-tenant-modal"
-            className="w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl"
+            className="w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-t-2xl bg-card shadow-2xl sm:rounded-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
+            <div className="flex items-start justify-between gap-4 border-b border-border px-6 py-5">
               <div>
-                <h2 className="text-lg font-semibold text-slate-900">Add Tenant</h2>
-                <p className="text-sm text-slate-500 mt-1">
+                <h2 className="text-lg font-semibold text-foreground">Add Tenant</h2>
+                <p className="text-sm text-muted-foreground mt-1">
                   Assign an existing tenant or create a new tenant without leaving this room.
                 </p>
               </div>
@@ -146,7 +147,7 @@ export function AssignTenantForm({
                 type="button"
                 onClick={() => setIsOpen(false)}
                 aria-label="Close"
-                className="p-1 -mr-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0"
+                className="p-1 -mr-1 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -155,15 +156,15 @@ export function AssignTenantForm({
             </div>
 
             <div className="px-6 pt-5">
-              <div className="inline-flex rounded-lg bg-slate-100 p-1">
+              <div className="inline-flex rounded-lg bg-muted p-1">
                 <button
                   type="button"
                   data-testid="assign-existing-tab"
                   onClick={() => setMode("assign")}
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     mode === "assign"
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Assign Existing
@@ -174,8 +175,8 @@ export function AssignTenantForm({
                   onClick={() => setMode("create")}
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     mode === "create"
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Create New
@@ -186,8 +187,8 @@ export function AssignTenantForm({
             <div className="px-6 py-6">
               {mode === "assign" ? (
                 <div className="space-y-5">
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-sm text-slate-600">
+                  <div className="rounded-xl border border-border bg-background px-4 py-3">
+                    <p className="text-sm text-muted-foreground">
                       Set the tenancy details here. Deposit required defaults to the room’s deposit amount.
                     </p>
                   </div>
@@ -201,29 +202,29 @@ export function AssignTenantForm({
                     <input type="hidden" name="status" value="ACTIVE" />
 
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-search-tenant`} className="block text-sm font-medium text-foreground mb-1.5">
                         Search Tenant
                       </label>
-                      <input
+                      <input id={`${formId}-search-tenant`}
                         type="search"
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
                         placeholder="Search by name or email"
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-tenantId`} className="block text-sm font-medium text-foreground mb-1.5">
                         Tenant <span className="text-red-500">*</span>
                       </label>
-                      <select
+                      <select id={`${formId}-tenantId`} aria-describedby={tenantOptions.length === 0 ? `${formId}-tenant-hint` : undefined}
                         name="tenantId"
                         required
                         value={selectedTenantId}
                         onChange={(event) => setSelectedTenantId(event.target.value)}
                         data-testid="assign-tenant-select"
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       >
                         <option value="">— Select Tenant —</option>
                         {filteredTenants.map((tenant) => (
@@ -233,105 +234,105 @@ export function AssignTenantForm({
                         ))}
                       </select>
                       {tenantOptions.length === 0 && (
-                        <p className="mt-2 text-sm text-slate-500">
+                        <p id={`${formId}-tenant-hint`} role="status" className="mt-2 text-sm text-muted-foreground">
                           No available tenants yet. Switch to “Create New” to add one first.
                         </p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-leaseStart`} className="block text-sm font-medium text-foreground mb-1.5">
                         Lease Start <span className="text-red-500">*</span>
                       </label>
-                      <input
+                      <input id={`${formId}-leaseStart`}
                         type="date"
                         name="leaseStart"
                         required
                         defaultValue={todayInputValue}
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-leaseEnd`} className="block text-sm font-medium text-foreground mb-1.5">
                         Lease End
                       </label>
-                      <input
+                      <input id={`${formId}-leaseEnd`}
                         type="date"
                         name="leaseEnd"
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-monthlyRent`} className="block text-sm font-medium text-foreground mb-1.5">
                         Monthly Rent (€) <span className="text-red-500">*</span>
                       </label>
-                      <input
+                      <input id={`${formId}-monthlyRent`}
                         type="number"
                         name="monthlyRent"
                         required
                         step="0.01"
                         min="0"
                         defaultValue={defaultRent}
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-depositRequired`} className="block text-sm font-medium text-foreground mb-1.5">
                         Deposit Required (€) <span className="text-red-500">*</span>
                       </label>
-                      <input
+                      <input id={`${formId}-depositRequired`}
                         type="number"
                         name="depositRequired"
                         required
                         step="0.01"
                         min="0"
                         defaultValue={defaultDeposit}
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-rentDueDay`} className="block text-sm font-medium text-foreground mb-1.5">
                         Rent Due Day
                       </label>
-                      <input
+                      <input id={`${formId}-rentDueDay`}
                         type="number"
                         name="rentDueDay"
                         min="1"
                         max="28"
                         defaultValue={1}
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-paymentGracePeriodDays`} className="block text-sm font-medium text-foreground mb-1.5">
                         Payment Grace Period (days)
                       </label>
-                      <input
+                      <input id={`${formId}-paymentGracePeriodDays`}
                         type="number"
                         name="paymentGracePeriodDays"
                         min="0"
                         step="1"
                         defaultValue={5}
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-moveInDate`} className="block text-sm font-medium text-foreground mb-1.5">
                         Move-in Date
-                        <span className="ml-1 text-slate-400 font-normal">(optional)</span>
+                        <span className="ml-1 text-muted-foreground font-normal">(optional)</span>
                       </label>
-                      <input
+                      <input aria-describedby={`${formId}-moveInDate-hint`} id={`${formId}-moveInDate`}
                         type="date"
                         name="moveInDate"
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p id={`${formId}-moveInDate-hint`} className="mt-1 text-xs text-muted-foreground">
                         Kept for history and occupancy records. Rent billing follows the lease start date.
                       </p>
                     </div>
@@ -340,7 +341,7 @@ export function AssignTenantForm({
                       <button
                         type="button"
                         onClick={() => setIsOpen(false)}
-                        className="text-sm text-slate-600 hover:text-slate-800 transition-colors"
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                       >
                         Cancel
                       </button>
@@ -350,13 +351,13 @@ export function AssignTenantForm({
                 </div>
               ) : (
                 <div className="space-y-5">
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-sm text-slate-600">
+                  <div className="rounded-xl border border-border bg-background px-4 py-3">
+                    <p className="text-sm text-muted-foreground">
                       Create the tenant here, then return to assignment with the new tenant preselected.
                     </p>
                   </div>
 
-                  <form
+                  <form aria-describedby={createState.error ? `${formId}-error` : undefined}
                     key="create-tenant-form"
                     action={createTenantAction}
                     className="grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -364,75 +365,75 @@ export function AssignTenantForm({
                     <input type="hidden" name="status" value="ACTIVE" />
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-firstName`} className="block text-sm font-medium text-foreground mb-1.5">
                         First Name <span className="text-red-500">*</span>
                       </label>
-                      <input
+                      <input id={`${formId}-firstName`}
                         name="firstName"
                         required
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-lastName`} className="block text-sm font-medium text-foreground mb-1.5">
                         Last Name <span className="text-red-500">*</span>
                       </label>
-                      <input
+                      <input id={`${formId}-lastName`}
                         name="lastName"
                         required
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-email`} className="block text-sm font-medium text-foreground mb-1.5">
                         Email <span className="text-red-500">*</span>
                       </label>
-                      <input
+                      <input id={`${formId}-email`}
                         name="email"
                         type="email"
                         required
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-phone`} className="block text-sm font-medium text-foreground mb-1.5">
                         Phone
                       </label>
-                      <input
+                      <input id={`${formId}-phone`}
                         name="phone"
                         type="tel"
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-nationality`} className="block text-sm font-medium text-foreground mb-1.5">
                         Nationality
                       </label>
-                      <input
+                      <input id={`${formId}-nationality`}
                         name="nationality"
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label htmlFor={`${formId}-notes`} className="block text-sm font-medium text-foreground mb-1.5">
                         Notes
                       </label>
-                      <textarea
+                      <textarea id={`${formId}-notes`}
                         name="notes"
                         rows={3}
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     {createState.error && (
-                      <p
+                      <p id={`${formId}-error`} role="alert"
                         data-testid="create-tenant-error"
-                        className="md:col-span-2 text-sm text-red-600"
+                        className="md:col-span-2 text-sm text-destructive"
                       >
                         {createState.error}
                       </p>
@@ -440,8 +441,9 @@ export function AssignTenantForm({
 
                     {createState.success && createState.tenant && (
                       <p
+                        role="status"
                         data-testid="create-tenant-success"
-                        className="md:col-span-2 text-sm text-green-700"
+                        className="md:col-span-2 text-sm text-success"
                       >
                         {createState.tenant.firstName} {createState.tenant.lastName} created. Review the tenancy details and assign them to this room.
                       </p>
@@ -451,7 +453,7 @@ export function AssignTenantForm({
                       <button
                         type="button"
                         onClick={() => setMode("assign")}
-                        className="text-sm text-slate-600 hover:text-slate-800 transition-colors"
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                       >
                         Back to assignment
                       </button>

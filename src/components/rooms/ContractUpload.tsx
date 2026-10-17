@@ -76,21 +76,21 @@ export function ContractUpload({
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-slate-600">Rental Contract</p>
+      <p className="text-xs font-medium text-muted-foreground">Rental Contract</p>
 
       {contractFileName ? (
-        <div className="flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+        <div className="flex items-center justify-between gap-2 bg-background border border-border rounded-lg px-3 py-2">
           <div className="min-w-0">
             <a
               href={`/api/occupancies/${occupancyId}/contract`}
               data-testid="contract-link"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-medium text-blue-600 hover:text-blue-700 truncate block"
+              className="text-xs font-medium text-primary hover:text-primary truncate block"
             >
               {contractFileName}
             </a>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {contractFileSize ? formatFileSize(contractFileSize) : ""}
               {contractUploadedAt ? ` · Uploaded ${formatDate(contractUploadedAt)}` : ""}
             </p>
@@ -101,7 +101,7 @@ export function ContractUpload({
               data-testid="contract-replace-button"
               onClick={() => fileRef.current?.click()}
               disabled={uploading || removing}
-              className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1 rounded hover:bg-slate-200 transition-colors"
+              className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-secondary transition-colors"
             >
               Replace
             </button>
@@ -122,13 +122,13 @@ export function ContractUpload({
           data-testid="contract-upload-button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="w-full flex items-center justify-center gap-2 border border-dashed border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+          className="w-full flex items-center justify-center gap-2 border border-dashed border-input rounded-lg px-3 py-2.5 text-xs text-muted-foreground hover:border-blue-400 hover:text-primary hover:bg-accent transition-colors"
         >
           {uploading ? "Uploading…" : "Attach contract (PDF · max 4 MB)"}
         </button>
       )}
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-destructive">{error}</p>}
 
       <input
         ref={fileRef}

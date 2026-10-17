@@ -1,18 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import "@fontsource-variable/inter";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-
 export const metadata: Metadata = {
-  title: "rentalapp",
-  description: "Private landlord management dashboard",
+  title: { default: "Rental App", template: "%s · Rental App" },
+  description: "Manage properties, tenancies, rent payments and property finances.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} h-full`}>
-      <body className="h-full bg-slate-50 font-sans antialiased">{children}</body>
+    <html lang="en" className="h-full">
+      <body className="h-full bg-background font-sans antialiased">{children}</body>
     </html>
   );
 }

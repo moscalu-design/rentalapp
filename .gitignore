@@ -53,3 +53,7 @@ next-env.d.ts
 *.db-journal
 *.db-wal
 *.db-shm
+
+# Local design review and test artifacts
+/work/
+/.impeccable/review/

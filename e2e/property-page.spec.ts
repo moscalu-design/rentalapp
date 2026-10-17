@@ -16,6 +16,8 @@ test("overview and costs routes support quick add and stay in sync", async ({ pa
   test.setTimeout(120_000);
   requireDestructive();
 
+  const currentMonth = new Date();
+  const currentMonthStart = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-01`;
   const monitor = attachAppMonitor(page);
   let propertyUrl: string | null = null;
 
@@ -74,7 +76,7 @@ test("overview and costs routes support quick add and stay in sync", async ({ pa
     await page.getByTestId("quick-add-cost-button").click();
     await expect(page.getByTestId("quick-add-cost-modal")).toBeVisible();
     await page.locator('[data-testid="quick-add-cost-modal"] input[name="amount"]').fill("42");
-    await page.locator('[data-testid="quick-add-cost-modal"] input[name="paymentDate"]').fill("2026-04-01");
+    await page.locator('[data-testid="quick-add-cost-modal"] input[name="paymentDate"]').fill(currentMonthStart);
     await page.locator('[data-testid="quick-add-cost-modal"] button[type="submit"]').click();
     await expect(page.getByTestId("property-summary-profit-value")).toContainText("-");
     await assertAppHealthy(page, monitor, "overview quick add works");
@@ -96,7 +98,7 @@ test("overview and costs routes support quick add and stay in sync", async ({ pa
     await expect(quickAdd).toBeVisible();
     await quickAdd.getByRole("button", { name: "Monthly recurring" }).click();
     await quickAdd.locator('input[name="amount"]').fill("75");
-    await quickAdd.locator('input[name="startDate"]').fill("2026-04-01");
+    await quickAdd.locator('input[name="startDate"]').fill(currentMonthStart);
     await quickAdd.locator('button[type="submit"]').click();
     await expect(page.getByTestId("property-expenses-section")).toContainText("€75");
     await assertAppHealthy(page, monitor, "costs page quick add supports recurring costs");

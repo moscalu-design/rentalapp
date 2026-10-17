@@ -63,7 +63,7 @@ export default async function PropertyMortgagesPage({
         actions={
           <Link
             href={`/properties/${id}`}
-            className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+            className="text-sm font-medium text-muted-foreground border border-border px-3 py-2 rounded-lg hover:bg-background transition-colors"
           >
             ← Property
           </Link>
@@ -74,25 +74,25 @@ export default async function PropertyMortgagesPage({
         <PropertySubnav propertyId={id} active="mortgages" />
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white border border-slate-200 rounded-xl px-4 py-4">
-            <p className="text-2xl font-bold text-slate-900">{property.mortgages.length}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Mortgage count</p>
+          <div className="bg-card border border-border rounded-xl px-4 py-4">
+            <p className="text-2xl font-bold text-foreground">{property.mortgages.length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Mortgage count</p>
           </div>
-          <div className="bg-white border border-slate-200 rounded-xl px-4 py-4">
-            <p className="text-2xl font-bold text-slate-900">
+          <div className="bg-card border border-border rounded-xl px-4 py-4">
+            <p className="text-2xl font-bold text-foreground">
               {formatCurrency(totalMonthlyOutflow)}
             </p>
-            <p className="text-xs text-slate-500 mt-0.5">Monthly outflow</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Monthly outflow</p>
           </div>
-          <div className="bg-white border border-slate-200 rounded-xl px-4 py-4">
-            <p className="text-2xl font-bold text-slate-900">
+          <div className="bg-card border border-border rounded-xl px-4 py-4">
+            <p className="text-2xl font-bold text-foreground">
               {formatCurrency(totalOutstanding)}
             </p>
-            <p className="text-xs text-slate-500 mt-0.5">Outstanding balance</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Outstanding balance</p>
           </div>
-          <div className="bg-white border border-slate-200 rounded-xl px-4 py-4">
-            <p className="text-2xl font-bold text-slate-900">{formatMonthYear(nearestPayoff)}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Nearest payoff</p>
+          <div className="bg-card border border-border rounded-xl px-4 py-4">
+            <p className="text-2xl font-bold text-foreground">{formatMonthYear(nearestPayoff)}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Nearest payoff</p>
           </div>
         </div>
 

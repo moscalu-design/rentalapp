@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useId, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -51,6 +51,7 @@ export function DepositManager({
   compact = false,
   todayInputValue,
 }: DepositManagerProps) {
+  const formId = useId();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -111,38 +112,38 @@ export function DepositManager({
   return (
     <div
       data-testid={compact ? "deposit-manager-compact" : "deposit-manager"}
-      className={compact ? "space-y-3 mt-3" : "space-y-4 pt-3 border-t border-slate-100"}
+      className={compact ? "space-y-3 mt-3" : "space-y-4 pt-3 border-t border-border"}
     >
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="rounded-lg bg-slate-50 px-3 py-2">
-          <p className="text-slate-500">Still due</p>
-          <p data-testid="deposit-outstanding-value" className="font-semibold text-slate-800">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-xs">
+        <div className="min-w-0 py-1">
+          <dt className="text-muted-foreground">Still due</dt>
+          <dd data-testid="deposit-outstanding-value" className="mt-1 font-semibold text-foreground">
             {formatCurrency(totals.outstandingDeposit)}
-          </p>
+          </dd>
         </div>
-        <div className="rounded-lg bg-slate-50 px-3 py-2">
-          <p className="text-slate-500">Net refund left</p>
-          <p data-testid="deposit-outstanding-refund" className="font-semibold text-slate-800">
+        <div className="min-w-0 py-1">
+          <dt className="text-muted-foreground">Net refund left</dt>
+          <dd data-testid="deposit-outstanding-refund" className="mt-1 font-semibold text-foreground">
             {formatCurrency(totals.outstandingRefund)}
-          </p>
+          </dd>
         </div>
-        <div className="rounded-lg bg-slate-50 px-3 py-2">
-          <p className="text-slate-500">Deductions</p>
-          <p data-testid="deposit-deductions-total" className="font-semibold text-red-600">
+        <div className="min-w-0 py-1">
+          <dt className="text-muted-foreground">Deductions</dt>
+          <dd data-testid="deposit-deductions-total" className="mt-1 font-semibold text-destructive">
             {formatCurrency(totals.deducted)}
-          </p>
+          </dd>
         </div>
-        <div className="rounded-lg bg-slate-50 px-3 py-2">
-          <p className="text-slate-500">Refunded</p>
-          <p data-testid="deposit-refunded-total" className="font-semibold text-emerald-700">
+        <div className="min-w-0 py-1">
+          <dt className="text-muted-foreground">Refunded</dt>
+          <dd data-testid="deposit-refunded-total" className="mt-1 font-semibold text-emerald-700">
             {formatCurrency(totals.refunded)}
-          </p>
+          </dd>
         </div>
-      </div>
+      </dl>
 
       {refundDueDate && (
-        <p className="text-xs text-slate-500">
-          Refund due by <span className="font-medium text-slate-700">{formatDate(refundDueDate)}</span>
+        <p className="text-xs text-muted-foreground">
+          Refund due by <span className="font-medium text-foreground">{formatDate(refundDueDate)}</span>
         </p>
       )}
 
@@ -153,7 +154,7 @@ export function DepositManager({
           setError(null);
           setOpen(true);
         }}
-        className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+        className="inline-flex items-center justify-center rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-background transition-colors"
       >
         Update Deposit
       </button>
@@ -165,35 +166,35 @@ export function DepositManager({
         >
           <div
             data-testid="deposit-update-modal"
-            className="w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-200"
+            className="w-full max-w-lg rounded-2xl bg-card shadow-2xl border border-border"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4">
+            <div className="flex items-start justify-between border-b border-border px-5 py-4">
               <div>
-                <h3 className="text-base font-semibold text-slate-900">Update Deposit</h3>
-                <p className="text-sm text-slate-500 mt-1">
+                <h3 className="text-base font-semibold text-foreground">Update Deposit</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Record money received, deductions, refunds, or adjustments.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => !pending && setOpen(false)}
-                className="rounded-lg px-2 py-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                className="rounded-lg px-2 py-1 text-muted-foreground hover:bg-muted hover:text-muted-foreground transition-colors"
               >
                 Close
               </button>
             </div>
 
             <div className="px-5 py-4">
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form aria-busy={pending} aria-describedby={error ? `${formId}-error` : undefined} onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Action</label>
-                    <select
+                    <label htmlFor={`${formId}-deposit-action-type`} className="block text-xs font-medium text-muted-foreground mb-1">Action</label>
+                    <select id={`${formId}-deposit-action-type`}
                       data-testid="deposit-action-type"
                       value={type}
                       onChange={(e) => setType(e.target.value)}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                      className="w-full border border-border rounded-lg px-3 py-2 text-sm"
                     >
                       <option value="RECEIVED">Deposit received</option>
                       <option value="DEDUCTION">Deduction</option>
@@ -202,8 +203,8 @@ export function DepositManager({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Amount (€)</label>
-                    <input
+                    <label htmlFor={`${formId}-deposit-action-amount`} className="block text-xs font-medium text-muted-foreground mb-1">Amount (€)</label>
+                    <input id={`${formId}-deposit-action-amount`}
                       data-testid="deposit-action-amount"
                       type="number"
                       step="0.01"
@@ -211,38 +212,38 @@ export function DepositManager({
                       required
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                      className="w-full border border-border rounded-lg px-3 py-2 text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Date</label>
-                    <input
+                    <label htmlFor={`${formId}-deposit-action-date`} className="block text-xs font-medium text-muted-foreground mb-1">Date</label>
+                    <input id={`${formId}-deposit-action-date`}
                       data-testid="deposit-action-date"
                       type="date"
                       required
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                      className="w-full border border-border rounded-lg px-3 py-2 text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
-                    <input
+                    <label htmlFor={`${formId}-deposit-action-description`} className="block text-xs font-medium text-muted-foreground mb-1">Description</label>
+                    <input id={`${formId}-deposit-action-description`}
                       data-testid="deposit-action-description"
                       type="text"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Optional"
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                      className="w-full border border-border rounded-lg px-3 py-2 text-sm"
                     />
                   </div>
                 </div>
 
                 {error && (
-                  <p data-testid="deposit-action-error" className="text-xs text-red-600">
+                  <p id={`${formId}-error`} role="alert" data-testid="deposit-action-error" className="text-xs text-destructive">
                     {error}
                   </p>
                 )}
@@ -251,7 +252,7 @@ export function DepositManager({
                   <button
                     type="button"
                     onClick={() => !pending && setOpen(false)}
-                    className="rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors"
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Cancel
                   </button>
@@ -259,7 +260,7 @@ export function DepositManager({
                     type="submit"
                     data-testid="deposit-action-submit"
                     disabled={pending}
-                    className="bg-blue-500 hover:bg-blue-600 disabled:opacity-60 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                    className="bg-primary hover:bg-primary disabled:opacity-60 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
                   >
                     {pending ? "Saving…" : "Save deposit update"}
                   </button>

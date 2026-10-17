@@ -49,11 +49,11 @@ export function TwoFactorSection({ enabled }: { enabled: boolean }) {
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6">
+    <div className="bg-card border border-border rounded-xl p-5 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-slate-800">Two-factor authentication</h2>
-          <p className="mt-1 text-sm text-slate-600">
+          <h2 className="text-sm font-semibold text-foreground">Two-factor authentication</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Use an authenticator app to add a one-time code at sign in.
           </p>
         </div>
@@ -72,7 +72,7 @@ export function TwoFactorSection({ enabled }: { enabled: boolean }) {
             type="button"
             onClick={startSetup}
             disabled={isPending}
-            className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-border px-4 text-sm font-medium text-foreground transition hover:bg-background disabled:opacity-60"
           >
             Set up 2FA
           </button>
@@ -80,13 +80,13 @@ export function TwoFactorSection({ enabled }: { enabled: boolean }) {
       </div>
 
       {!enabled && setup && (
-        <div className="mt-4 space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <p className="text-sm text-slate-700">
+        <div className="mt-4 space-y-3 rounded-lg border border-border bg-background p-4">
+          <p className="text-sm text-foreground">
             Add this setup URI or secret in your authenticator app, then enter the 6-digit code.
           </p>
-          <div className="space-y-2 text-xs text-slate-600">
-            <p className="break-all rounded bg-white p-2 font-mono">{setup.otpauthUri}</p>
-            <p className="break-all rounded bg-white p-2 font-mono">{setup.secret}</p>
+          <div className="space-y-2 text-xs text-muted-foreground">
+            <p className="break-all rounded bg-card p-2 font-mono">{setup.otpauthUri}</p>
+            <p className="break-all rounded bg-card p-2 font-mono">{setup.secret}</p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
@@ -94,13 +94,13 @@ export function TwoFactorSection({ enabled }: { enabled: boolean }) {
               onChange={(event) => setCode(event.target.value)}
               inputMode="numeric"
               placeholder="123456"
-              className="h-10 rounded-lg border border-slate-200 px-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-10 rounded-lg border border-border px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <button
               type="button"
               onClick={confirmSetup}
               disabled={isPending}
-              className="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
+              className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-white transition hover:bg-primary-hover disabled:opacity-60"
             >
               Enable
             </button>
@@ -109,7 +109,7 @@ export function TwoFactorSection({ enabled }: { enabled: boolean }) {
       )}
 
       {message && (
-        <div role="status" className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+        <div role="status" className="mt-4 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground">
           {message}
         </div>
       )}

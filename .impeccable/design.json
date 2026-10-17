@@ -1,0 +1,391 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-16T19:15:01.956767+00:00",
+  "title": "Design System: Rental App",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Primary",
+        "tonalRamp": [
+          "oklch(15% 0.24357 262.88)",
+          "oklch(25% 0.24357 262.88)",
+          "oklch(35% 0.24357 262.88)",
+          "oklch(47% 0.24357 262.88)",
+          "oklch(59% 0.24357 262.88)",
+          "oklch(71% 0.24357 262.88)",
+          "oklch(83% 0.24357 262.88)",
+          "oklch(95% 0.24357 262.88)"
+        ]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "Primary Hover",
+        "tonalRamp": [
+          "oklch(15% 0.21478 262.82)",
+          "oklch(25% 0.21478 262.82)",
+          "oklch(35% 0.21478 262.82)",
+          "oklch(47% 0.21478 262.82)",
+          "oklch(59% 0.21478 262.82)",
+          "oklch(71% 0.21478 262.82)",
+          "oklch(83% 0.21478 262.82)",
+          "oklch(95% 0.21478 262.82)"
+        ]
+      },
+      "primary-foreground": {
+        "role": "primary",
+        "displayName": "Primary Foreground",
+        "tonalRamp": [
+          "oklch(15% 0.00000 89.88)",
+          "oklch(25% 0.00000 89.88)",
+          "oklch(35% 0.00000 89.88)",
+          "oklch(47% 0.00000 89.88)",
+          "oklch(59% 0.00000 89.88)",
+          "oklch(71% 0.00000 89.88)",
+          "oklch(83% 0.00000 89.88)",
+          "oklch(95% 0.00000 89.88)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Background",
+        "tonalRamp": [
+          "oklch(15% 0.00189 286.36)",
+          "oklch(25% 0.00189 286.36)",
+          "oklch(35% 0.00189 286.36)",
+          "oklch(47% 0.00189 286.36)",
+          "oklch(59% 0.00189 286.36)",
+          "oklch(71% 0.00189 286.36)",
+          "oklch(83% 0.00189 286.36)",
+          "oklch(95% 0.00189 286.36)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Foreground",
+        "tonalRamp": [
+          "oklch(15% 0.00800 285.69)",
+          "oklch(25% 0.00800 285.69)",
+          "oklch(35% 0.00800 285.69)",
+          "oklch(47% 0.00800 285.69)",
+          "oklch(59% 0.00800 285.69)",
+          "oklch(71% 0.00800 285.69)",
+          "oklch(83% 0.00800 285.69)",
+          "oklch(95% 0.00800 285.69)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card",
+        "tonalRamp": [
+          "oklch(15% 0.00000 89.88)",
+          "oklch(25% 0.00000 89.88)",
+          "oklch(35% 0.00000 89.88)",
+          "oklch(47% 0.00000 89.88)",
+          "oklch(59% 0.00000 89.88)",
+          "oklch(71% 0.00000 89.88)",
+          "oklch(83% 0.00000 89.88)",
+          "oklch(95% 0.00000 89.88)"
+        ]
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "Secondary",
+        "tonalRamp": [
+          "oklch(15% 0.00286 286.34)",
+          "oklch(25% 0.00286 286.34)",
+          "oklch(35% 0.00286 286.34)",
+          "oklch(47% 0.00286 286.34)",
+          "oklch(59% 0.00286 286.34)",
+          "oklch(71% 0.00286 286.34)",
+          "oklch(83% 0.00286 286.34)",
+          "oklch(95% 0.00286 286.34)"
+        ]
+      },
+      "secondary-foreground": {
+        "role": "neutral",
+        "displayName": "Secondary Foreground",
+        "tonalRamp": [
+          "oklch(15% 0.01137 285.58)",
+          "oklch(25% 0.01137 285.58)",
+          "oklch(35% 0.01137 285.58)",
+          "oklch(47% 0.01137 285.58)",
+          "oklch(59% 0.01137 285.58)",
+          "oklch(71% 0.01137 285.58)",
+          "oklch(83% 0.01137 285.58)",
+          "oklch(95% 0.01137 285.58)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15% 0.00203 286.36)",
+          "oklch(25% 0.00203 286.36)",
+          "oklch(35% 0.00203 286.36)",
+          "oklch(47% 0.00203 286.36)",
+          "oklch(59% 0.00203 286.36)",
+          "oklch(71% 0.00203 286.36)",
+          "oklch(83% 0.00203 286.36)",
+          "oklch(95% 0.00203 286.36)"
+        ]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Muted Foreground",
+        "tonalRamp": [
+          "oklch(15% 0.01363 285.92)",
+          "oklch(25% 0.01363 285.92)",
+          "oklch(35% 0.01363 285.92)",
+          "oklch(47% 0.01363 285.92)",
+          "oklch(59% 0.01363 285.92)",
+          "oklch(71% 0.01363 285.92)",
+          "oklch(83% 0.01363 285.92)",
+          "oklch(95% 0.01363 285.92)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Accent",
+        "tonalRamp": [
+          "oklch(15% 0.01492 265.93)",
+          "oklch(25% 0.01492 265.93)",
+          "oklch(35% 0.01492 265.93)",
+          "oklch(47% 0.01492 265.93)",
+          "oklch(59% 0.01492 265.93)",
+          "oklch(71% 0.01492 265.93)",
+          "oklch(83% 0.01492 265.93)",
+          "oklch(95% 0.01492 265.93)"
+        ]
+      },
+      "destructive": {
+        "role": "semantic",
+        "displayName": "Destructive",
+        "tonalRamp": [
+          "oklch(15% 0.19524 27.16)",
+          "oklch(25% 0.19524 27.16)",
+          "oklch(35% 0.19524 27.16)",
+          "oklch(47% 0.19524 27.16)",
+          "oklch(59% 0.19524 27.16)",
+          "oklch(71% 0.19524 27.16)",
+          "oklch(83% 0.19524 27.16)",
+          "oklch(95% 0.19524 27.16)"
+        ]
+      },
+      "success": {
+        "role": "semantic",
+        "displayName": "Success",
+        "tonalRamp": [
+          "oklch(15% 0.10576 157.91)",
+          "oklch(25% 0.10576 157.91)",
+          "oklch(35% 0.10576 157.91)",
+          "oklch(47% 0.10576 157.91)",
+          "oklch(59% 0.10576 157.91)",
+          "oklch(71% 0.10576 157.91)",
+          "oklch(83% 0.10576 157.91)",
+          "oklch(95% 0.10576 157.91)"
+        ]
+      },
+      "warning": {
+        "role": "semantic",
+        "displayName": "Warning",
+        "tonalRamp": [
+          "oklch(15% 0.10460 60.98)",
+          "oklch(25% 0.10460 60.98)",
+          "oklch(35% 0.10460 60.98)",
+          "oklch(47% 0.10460 60.98)",
+          "oklch(59% 0.10460 60.98)",
+          "oklch(71% 0.10460 60.98)",
+          "oklch(83% 0.10460 60.98)",
+          "oklch(95% 0.10460 60.98)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border",
+        "tonalRamp": [
+          "oklch(15% 0.00411 286.32)",
+          "oklch(25% 0.00411 286.32)",
+          "oklch(35% 0.00411 286.32)",
+          "oklch(47% 0.00411 286.32)",
+          "oklch(59% 0.00411 286.32)",
+          "oklch(71% 0.00411 286.32)",
+          "oklch(83% 0.00411 286.32)",
+          "oklch(95% 0.00411 286.32)"
+        ]
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Input",
+        "tonalRamp": [
+          "oklch(15% 0.00665 286.26)",
+          "oklch(25% 0.00665 286.26)",
+          "oklch(35% 0.00665 286.26)",
+          "oklch(47% 0.00665 286.26)",
+          "oklch(59% 0.00665 286.26)",
+          "oklch(71% 0.00665 286.26)",
+          "oklch(83% 0.00665 286.26)",
+          "oklch(95% 0.00665 286.26)"
+        ]
+      },
+      "sidebar": {
+        "role": "neutral",
+        "displayName": "Sidebar",
+        "tonalRamp": [
+          "oklch(15% 0.00094 286.38)",
+          "oklch(25% 0.00094 286.38)",
+          "oklch(35% 0.00094 286.38)",
+          "oklch(47% 0.00094 286.38)",
+          "oklch(59% 0.00094 286.38)",
+          "oklch(71% 0.00094 286.38)",
+          "oklch(83% 0.00094 286.38)",
+          "oklch(95% 0.00094 286.38)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Page heading",
+        "purpose": "Default page title; larger counterpart applies at the large breakpoint."
+      },
+      "body": {
+        "displayName": "Working text",
+        "purpose": "Forms, controls and compact rental information."
+      }
+    },
+    "shadows": [
+      {
+        "name": "xs",
+        "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        "purpose": "Selected sidebar row."
+      },
+      {
+        "name": "sm",
+        "value": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+        "purpose": "Existing selected segments and limited raised surfaces."
+      },
+      {
+        "name": "xl",
+        "value": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+        "purpose": "Existing dialogs."
+      }
+    ],
+    "motion": [
+      {
+        "name": "color-transition-duration",
+        "value": "150ms",
+        "purpose": "Interactive color changes."
+      },
+      {
+        "name": "standard-easing",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Current Tailwind transition timing."
+      },
+      {
+        "name": "reduced-motion-duration",
+        "value": "0.01ms",
+        "purpose": "Global reduced-motion override."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "40rem"
+      },
+      {
+        "name": "md",
+        "value": "48rem"
+      },
+      {
+        "name": "lg",
+        "value": "64rem"
+      },
+      {
+        "name": "xl",
+        "value": "80rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Explicit form or page action using the shared Rental App control.",
+      "html": "<button class=\"ds-button-primary\">Save changes</button>",
+      "css": ".ds-button-primary{font-family:Inter, ui-sans-serif, system-ui, sans-serif;font-size:14px;line-height:20px;border-radius:14px;transition:background-color 150ms cubic-bezier(0.4,0,0.2,1);display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 16px;font-weight:500;border:none;background:var(--primary, hsl(221 94% 48%));color:var(--primary-foreground, hsl(0 0% 100%));cursor:pointer} .ds-button-primary:hover{background:var(--primary-hover, hsl(221 94% 41%))} .ds-button-primary:focus-visible{outline:2px solid var(--primary, hsl(221 94% 48%));outline-offset:3px;} .ds-button-primary:active{background:var(--primary-hover, hsl(221 94% 41%))} .ds-button-primary:disabled{opacity:.5;cursor:not-allowed}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Explicit form or page action using the shared Rental App control.",
+      "html": "<button class=\"ds-button-secondary\">Save changes</button>",
+      "css": ".ds-button-secondary{font-family:Inter, ui-sans-serif, system-ui, sans-serif;font-size:14px;line-height:20px;border-radius:14px;transition:background-color 150ms cubic-bezier(0.4,0,0.2,1);display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 16px;font-weight:500;border:1px solid var(--border, hsl(240 6% 90%));background:var(--card, hsl(0 0% 100%));color:var(--foreground, hsl(240 8% 10%));cursor:pointer} .ds-button-secondary:hover{background:var(--muted, hsl(240 6% 95%))} .ds-button-secondary:focus-visible{outline:2px solid var(--primary, hsl(221 94% 48%));outline-offset:3px;} .ds-button-secondary:active{background:var(--muted, hsl(240 6% 95%))} .ds-button-secondary:disabled{opacity:.5;cursor:not-allowed}"
+    },
+    {
+      "name": "Text field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Visible label, associated hint and the shared field treatment.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-property-name\">Property name</label><input class=\"ds-input\" id=\"ds-property-name\" aria-describedby=\"ds-field-hint\" placeholder=\"Property name\"><p class=\"ds-field-hint\" id=\"ds-field-hint\">Use the name shown in your portfolio.</p>",
+      "css": ".ds-field-label{display:block;font-family:Inter, ui-sans-serif, system-ui, sans-serif;font-size:14px;font-weight:500;margin-bottom:6px;color:var(--foreground, hsl(240 8% 10%))}.ds-input{font-family:Inter, ui-sans-serif, system-ui, sans-serif;font-size:14px;line-height:20px;border-radius:14px;transition:background-color 150ms cubic-bezier(0.4,0,0.2,1);min-height:40px;padding:8px 12px;border:1px solid var(--input, hsl(240 5% 81%));background:var(--card, hsl(0 0% 100%));color:var(--foreground, hsl(240 8% 10%));caret-color:var(--primary, hsl(221 94% 48%))}.ds-input::placeholder{color:var(--muted-foreground, hsl(240 4% 43%));opacity:1}.ds-input:hover{border-color:var(--input, hsl(240 5% 81%))}.ds-input:focus{border-color:var(--primary, hsl(221 94% 48%))}.ds-input:focus-visible{outline:2px solid var(--primary, hsl(221 94% 48%));outline-offset:3px;}.ds-input:disabled{opacity:.5;cursor:not-allowed}.ds-field-hint{font-family:Inter, ui-sans-serif, system-ui, sans-serif;font-size:12px;line-height:16px;color:var(--muted-foreground, hsl(240 4% 43%));margin:8px 0 0}"
+    },
+    {
+      "name": "Active navigation",
+      "kind": "nav",
+      "refersTo": "navigation-active",
+      "description": "Selected property navigation with an explicit current-page state.",
+      "html": "<nav aria-label=\"Example navigation\"><a class=\"ds-nav\" href=\"#\" aria-current=\"page\">Properties<span class=\"ds-nav-dot\" aria-hidden=\"true\"></span></a></nav>",
+      "css": ".ds-nav{font-family:Inter, ui-sans-serif, system-ui, sans-serif;font-size:14px;line-height:20px;border-radius:14px;transition:background-color 150ms cubic-bezier(0.4,0,0.2,1);display:flex;align-items:center;gap:12px;min-height:40px;padding:8px 12px;border:1px solid var(--border, hsl(240 6% 90%));background:var(--card, hsl(0 0% 100%));color:var(--foreground, hsl(240 8% 10%));text-decoration:none;font-weight:500;box-shadow:0 1px 2px 0 rgb(0 0 0 / .05)}.ds-nav:hover{background:var(--muted, hsl(240 6% 95%))}.ds-nav:focus-visible{outline:2px solid var(--primary, hsl(221 94% 48%));outline-offset:3px;}.ds-nav-dot{width:6px;height:6px;border-radius:9999px;background:var(--primary, hsl(221 94% 48%));margin-left:auto}"
+    },
+    {
+      "name": "Neutral status",
+      "kind": "chip",
+      "refersTo": "status-neutral",
+      "description": "A noninteractive status label; the text carries the meaning.",
+      "html": "<span class=\"ds-status\">Pending</span>",
+      "css": ".ds-status{display:inline-flex;align-items:center;padding:2px 8px;border-radius:9999px;font-family:Inter, ui-sans-serif, system-ui, sans-serif;font-size:12px;font-weight:500;line-height:16px;background:var(--muted, hsl(240 6% 95%));color:var(--foreground, hsl(240 8% 10%))}"
+    },
+    {
+      "name": "Content panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "One quiet boundary for a coherent section.",
+      "html": "<section class=\"ds-panel\"><h2 class=\"ds-panel-title\">Property details</h2><p class=\"ds-panel-copy\">Address, rental mode and property information.</p></section>",
+      "css": ".ds-panel{padding:20px;border:1px solid var(--border, hsl(240 6% 90%));border-radius:16px;background:var(--card, hsl(0 0% 100%));color:var(--foreground, hsl(240 8% 10%));font-family:Inter, ui-sans-serif, system-ui, sans-serif}.ds-panel-title{font-size:14px;font-weight:600;line-height:20px;margin:0;letter-spacing:-.025em}.ds-panel-copy{font-size:14px;line-height:20px;color:var(--muted-foreground, hsl(240 4% 43%));margin:8px 0 0}"
+    },
+    {
+      "name": "Grouped financial values",
+      "kind": "custom",
+      "description": "Illustrative layout specimen; amounts shown here are placeholders, not account data. Values share their parent panel.",
+      "html": "<dl class=\"ds-values\"><div><dt>Monthly outflow</dt><dd>—</dd></div><div><dt>Outstanding balance</dt><dd>—</dd></div></dl>",
+      "css": ".ds-values{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 24px;font-family:Inter, ui-sans-serif, system-ui, sans-serif;margin:0;color:var(--foreground, hsl(240 8% 10%))}.ds-values dt{font-size:12px;line-height:16px;color:var(--muted-foreground, hsl(240 4% 43%))}.ds-values dd{margin:4px 0 0;font-size:18px;line-height:28px;font-weight:700;font-variant-numeric:tabular-nums}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Verity family, specialized for rentals",
+    "overview": "Rental App shares Verity’s pearl workspace, graphite text, Inter typography and blue actions. Its content and navigation center on properties, tenancies, rent, deposits, mortgages and costs. This records the user-selected family resemblance already implemented in the source; it does not introduce a new visual direction.\n\nThe desktop workspace is calm and compact: broad page margins, quiet dividers and clearly grouped values. Existing responsive compositions remain intact. Functional color explains actions or status; rental information carries the page.",
+    "keyCharacteristics": [
+      "Pearl workspace with white content surfaces and graphite text.",
+      "Inter with restrained headings and aligned financial numerals.",
+      "Blue actions, visible keyboard focus and explicit status labels.",
+      "Grouped financial values within one parent panel."
+    ],
+    "rules": [],
+    "dos": [
+      "Do use the shared semantic colors and existing components for new screens.",
+      "Do keep rental labels and billing scope visible beside financial values.",
+      "Do associate each field label with its control and preserve hints, error messages and pending states.",
+      "Do use one parent panel for related subtotal values and retain existing responsive breakpoints.",
+      "Do keep hypothetical mortgage scenarios visibly separate from saved loan terms."
+    ],
+    "donts": [
+      "Do not introduce decorative gradients or an unrelated brand palette.",
+      "Do not nest a new card around each subtotal inside an existing panel.",
+      "Do not use color as the only indicator of status.",
+      "Do not redesign the mobile composition as part of a desktop styling pass.",
+      "Do not imply bank reconciliation, live production data or connector success through a visual state without evidence."
+    ]
+  }
+}

@@ -65,29 +65,29 @@ function ItemForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-lg border border-border bg-background p-4">
       {error && (
-        <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <div className="text-xs text-destructive bg-red-50 border border-red-200 rounded-lg px-3 py-2">
           {error}
         </div>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">Name</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Name</label>
           <input
             name="name"
             required
             defaultValue={item?.name ?? ""}
             placeholder="e.g. Double bed"
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">Category</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Category</label>
           <select
             name="category"
             defaultValue={item?.category ?? "FURNITURE"}
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {INVENTORY_CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>{CATEGORY_LABELS[cat] ?? cat}</option>
@@ -95,18 +95,18 @@ function ItemForm({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">Quantity</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Quantity</label>
           <input
             name="quantity"
             type="number"
             min="1"
             defaultValue={item?.quantity ?? 1}
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
-            Est. Value (€) <span className="text-slate-400 font-normal">optional</span>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Est. Value (€) <span className="text-muted-foreground font-normal">optional</span>
           </label>
           <input
             name="estimatedValue"
@@ -115,19 +115,19 @@ function ItemForm({
             min="0"
             defaultValue={item?.estimatedValue ?? ""}
             placeholder="0.00"
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       </div>
       <div>
-        <label className="block text-xs font-medium text-slate-600 mb-1">
-          Notes <span className="text-slate-400 font-normal">optional</span>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">
+          Notes <span className="text-muted-foreground font-normal">optional</span>
         </label>
         <input
           name="notes"
           defaultValue={item?.notes ?? ""}
           placeholder="Any details…"
-          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
       <input type="hidden" name="sortOrder" value={item?.sortOrder ?? 0} />
@@ -135,7 +135,7 @@ function ItemForm({
         <button
           type="submit"
           disabled={pending}
-          className="bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="bg-primary hover:bg-primary disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
           {pending ? "Saving…" : item ? "Save" : "Add item"}
         </button>
@@ -143,7 +143,7 @@ function ItemForm({
           type="button"
           onClick={onDone}
           disabled={pending}
-          className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           Cancel
         </button>
@@ -177,11 +177,11 @@ export function RoomInventoryManager({
   const totalValue = items.reduce((sum, i) => sum + (i.estimatedValue ?? 0) * i.quantity, 0);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/40">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+    <div className="rounded-lg border border-border bg-card">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
         <div>
-          <h2 className="text-sm font-semibold text-slate-800">Room Inventory</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h2 className="text-sm font-semibold text-foreground">Room Inventory</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
             {items.length} item{items.length !== 1 ? "s" : ""}
             {totalValue > 0 && ` · est. ${formatCurrency(totalValue)} total`}
           </p>
@@ -189,7 +189,7 @@ export function RoomInventoryManager({
         <button
           type="button"
           onClick={() => { setShowAdd(true); setEditingId(null); }}
-          className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-100"
+          className="rounded-lg border border-blue-200 bg-accent px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-accent"
         >
           + Add item
         </button>
@@ -201,7 +201,7 @@ export function RoomInventoryManager({
         )}
 
         {items.length === 0 && !showAdd && (
-          <p className="text-sm text-slate-500 text-center py-6">
+          <p className="text-sm text-muted-foreground text-center py-6">
             No items yet. Add furniture, appliances, and fixtures to track.
           </p>
         )}
@@ -218,30 +218,30 @@ export function RoomInventoryManager({
             <div
               key={item.id}
               data-testid="inventory-item-row"
-              className="flex flex-col gap-3 border-b border-slate-100 py-3 last:border-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
+              className="flex flex-col gap-3 border-b border-border py-3 last:border-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-slate-800">{item.name}</span>
-                  <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                  <span className="text-sm font-medium text-foreground">{item.name}</span>
+                  <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                     {CATEGORY_LABELS[item.category] ?? item.category}
                   </span>
                   {item.quantity > 1 && (
-                    <span className="text-xs text-slate-500">×{item.quantity}</span>
+                    <span className="text-xs text-muted-foreground">×{item.quantity}</span>
                   )}
                 </div>
                 {item.notes && (
-                  <p className="text-xs text-slate-400 mt-0.5 truncate">{item.notes}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.notes}</p>
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-3">
                 {item.estimatedValue !== null && (
-                  <span className="text-xs text-slate-500">{formatCurrency(item.estimatedValue * item.quantity)}</span>
+                  <span className="text-xs text-muted-foreground">{formatCurrency(item.estimatedValue * item.quantity)}</span>
                 )}
                 <button
                   type="button"
                   onClick={() => { setEditingId(item.id); setShowAdd(false); }}
-                  className="text-xs text-slate-400 hover:text-blue-600 transition-colors"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
                 >
                   Edit
                 </button>
@@ -249,7 +249,7 @@ export function RoomInventoryManager({
                   type="button"
                   onClick={() => handleDelete(item.id)}
                   disabled={deleting === item.id}
-                  className="text-xs text-slate-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                  className="text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
                 >
                   {deleting === item.id ? "…" : "Remove"}
                 </button>

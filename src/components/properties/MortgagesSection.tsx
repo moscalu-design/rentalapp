@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useId, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bar,
@@ -319,8 +319,8 @@ function DetailsTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-sm px-3 py-2.5 text-xs">
-      <p className="font-semibold text-slate-700 mb-1.5">{label}</p>
+    <div className="bg-card border border-border rounded-lg shadow-sm px-3 py-2.5 text-xs">
+      <p className="font-semibold text-foreground mb-1.5">{label}</p>
       {payload
         .filter((entry) => typeof entry.value === "number")
         .map((entry) => (
@@ -329,7 +329,7 @@ function DetailsTooltip({
               className="w-2 h-2 rounded-sm shrink-0"
               style={{ background: entry.color || "#94a3b8" }}
             />
-            <span className="text-slate-500 capitalize">{entry.name}:</span>
+            <span className="text-muted-foreground capitalize">{entry.name}:</span>
             <span
               className="font-medium ml-auto pl-3"
               style={{ color: entry.color || "#0f172a" }}
@@ -349,6 +349,7 @@ function MortgageFormFields({
   state: MortgageFormState;
   onChange: (field: keyof MortgageFormState, value: string) => void;
 }) {
+  const formId = useId();
   const calculatedPayment = getCalculatedPayment(state);
   const isBullet = state.type === "bullet";
 
@@ -356,27 +357,27 @@ function MortgageFormFields({
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
+          <label htmlFor={`${formId}-label`} className="block text-xs font-medium text-muted-foreground mb-1">
             Mortgage Name <span className="text-red-400">*</span>
           </label>
-          <input
+          <input id={`${formId}-label`}
             name="label"
             type="text"
             value={state.label}
             onChange={(e) => onChange("label", e.target.value)}
             placeholder="e.g. Main Mortgage"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
+          <label htmlFor={`${formId}-type`} className="block text-xs font-medium text-muted-foreground mb-1">
             Mortgage Type <span className="text-red-400">*</span>
           </label>
-          <select
+          <select id={`${formId}-type`}
             name="type"
             value={state.type}
             onChange={(e) => onChange("type", e.target.value)}
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring bg-card"
           >
             <option value="amortizing">Standard amortizing</option>
             <option value="bullet">Bullet mortgage</option>
@@ -386,23 +387,23 @@ function MortgageFormFields({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
+          <label htmlFor={`${formId}-startDate`} className="block text-xs font-medium text-muted-foreground mb-1">
             Start Date <span className="text-red-400">*</span>
           </label>
-          <input
+          <input aria-describedby={`${formId}-startDate-hint`} id={`${formId}-startDate`}
             name="startDate"
             type="date"
             value={state.startDate}
             onChange={(e) => onChange("startDate", e.target.value)}
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
           />
-          <p className="text-xs text-slate-400 mt-1">First payment month</p>
+          <p id={`${formId}-startDate-hint`} className="text-xs text-muted-foreground mt-1">First payment month</p>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
+          <label htmlFor={`${formId}-termMonths`} className="block text-xs font-medium text-muted-foreground mb-1">
             Duration (months) <span className="text-red-400">*</span>
           </label>
-          <input
+          <input id={`${formId}-termMonths`}
             name="termMonths"
             type="number"
             min={1}
@@ -410,17 +411,17 @@ function MortgageFormFields({
             value={state.termMonths}
             onChange={(e) => onChange("termMonths", e.target.value)}
             placeholder="e.g. 300"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
+          <label htmlFor={`${formId}-initialBalance`} className="block text-xs font-medium text-muted-foreground mb-1">
             Principal (€) <span className="text-red-400">*</span>
           </label>
-          <input
+          <input id={`${formId}-initialBalance`}
             name="initialBalance"
             type="number"
             min={0.01}
@@ -428,14 +429,14 @@ function MortgageFormFields({
             value={state.initialBalance}
             onChange={(e) => onChange("initialBalance", e.target.value)}
             placeholder="200000"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
+          <label htmlFor={`${formId}-interestRate`} className="block text-xs font-medium text-muted-foreground mb-1">
             Interest Rate (%) <span className="text-red-400">*</span>
           </label>
-          <input
+          <input aria-describedby={`${formId}-interestRate-hint`} id={`${formId}-interestRate`}
             name="interestRate"
             type="number"
             min={0}
@@ -444,15 +445,15 @@ function MortgageFormFields({
             value={state.interestRate}
             onChange={(e) => onChange("interestRate", e.target.value)}
             placeholder="3.125"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
           />
-          <p className="text-xs text-slate-400 mt-1">Up to 5 decimals</p>
+          <p id={`${formId}-interestRate-hint`} className="text-xs text-muted-foreground mt-1">Up to 5 decimals</p>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
+          <label htmlFor={`${formId}-monthlyPaymentDisplay`} className="block text-xs font-medium text-muted-foreground mb-1">
             {isBullet ? "Monthly interest-only payment" : "Calculated monthly payment"}
           </label>
-          <input
+          <input aria-describedby={`${formId}-monthlyPaymentDisplay-hint`} id={`${formId}-monthlyPaymentDisplay`}
             name="monthlyPaymentDisplay"
             type="text"
             value={calculatedPayment === null ? "" : formatCurrency(calculatedPayment)}
@@ -462,9 +463,9 @@ function MortgageFormFields({
                 : "Calculated from principal, rate, and term"
             }
             readOnly
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-slate-50 text-slate-700 focus:outline-none"
+            className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-background text-foreground focus:outline-none"
           />
-          <p className="text-xs text-slate-400 mt-1">
+          <p id={`${formId}-monthlyPaymentDisplay-hint`} className="text-xs text-muted-foreground mt-1">
             {isBullet
               ? "Balloon principal is repaid at maturity"
               : "This stays read-only so the baseline schedule stays deterministic"}
@@ -473,30 +474,30 @@ function MortgageFormFields({
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-slate-600 mb-1">
-          Lender <span className="text-slate-400 font-normal">(optional)</span>
+        <label htmlFor={`${formId}-lender`} className="block text-xs font-medium text-muted-foreground mb-1">
+          Lender <span className="text-muted-foreground font-normal">(optional)</span>
         </label>
-        <input
+        <input id={`${formId}-lender`}
           name="lender"
           type="text"
           value={state.lender}
           onChange={(e) => onChange("lender", e.target.value)}
           placeholder="e.g. Nationwide"
-          className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-slate-600 mb-1">
-          Notes <span className="text-slate-400 font-normal">(optional)</span>
+        <label htmlFor={`${formId}-notes`} className="block text-xs font-medium text-muted-foreground mb-1">
+          Notes <span className="text-muted-foreground font-normal">(optional)</span>
         </label>
-        <textarea
+        <textarea id={`${formId}-notes`}
           name="notes"
           value={state.notes}
           onChange={(e) => onChange("notes", e.target.value)}
           rows={3}
           placeholder="Anything important about this facility, repayment strategy, or maturity."
-          className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring resize-none"
         />
       </div>
     </div>
@@ -512,6 +513,7 @@ function MortgageEditorModal({
   mortgage?: Mortgage;
   onClose: () => void;
 }) {
+  const formId = useId();
   const router = useRouter();
   const [state, setState] = useState(getDefaultFormState(mortgage));
   const [saving, setSaving] = useState(false);
@@ -557,45 +559,45 @@ function MortgageEditorModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl"
+        className="w-full max-w-2xl bg-card rounded-2xl shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border">
           <div>
-            <h2 className="text-sm font-semibold text-slate-800">
+            <h2 className="text-sm font-semibold text-foreground">
               {isEditing ? "Edit Mortgage" : "Add Mortgage"}
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Baseline mortgage terms define the contractual schedule. Prepayments stay separate.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 text-lg leading-none"
+            className="text-muted-foreground hover:text-muted-foreground text-lg leading-none"
           >
             ×
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+        <form aria-busy={saving} aria-describedby={error ? `${formId}-error` : undefined} onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <MortgageFormFields state={state} onChange={updateField} />
 
           {error && (
-            <p className="text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+            <p id={`${formId}-error`} role="alert" className="text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>
           )}
 
           <div className="flex justify-end gap-2 pt-1">
             <button
               type="button"
               onClick={onClose}
-              className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-50"
+              className="text-sm text-muted-foreground hover:text-foreground px-4 py-2 rounded-lg hover:bg-background"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover disabled:opacity-50"
             >
               {saving ? "Saving…" : isEditing ? "Save Changes" : "Add Mortgage"}
             </button>
@@ -617,6 +619,7 @@ function PrepaymentEditorModal({
   prepayment?: MortgagePrepayment;
   onClose: () => void;
 }) {
+  const formId = useId();
   const router = useRouter();
   const [state, setState] = useState(getDefaultPrepaymentFormState(prepayment));
   const [saving, setSaving] = useState(false);
@@ -661,33 +664,33 @@ function PrepaymentEditorModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white rounded-2xl shadow-2xl"
+        className="w-full max-w-lg bg-card rounded-2xl shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border">
           <div>
-            <h2 className="text-sm font-semibold text-slate-800">
+            <h2 className="text-sm font-semibold text-foreground">
               {prepayment ? "Edit Prepayment" : "Record Prepayment"}
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Saved prepayments change the real mortgage path and property cash flow.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 text-lg leading-none"
+            className="text-muted-foreground hover:text-muted-foreground text-lg leading-none"
           >
             ×
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+        <form aria-busy={saving} aria-describedby={error ? `${formId}-error` : undefined} onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Type</label>
-            <select
+            <label htmlFor={`${formId}-type`} className="block text-xs font-medium text-muted-foreground mb-1">Type</label>
+            <select id={`${formId}-type`}
               value={state.type}
               onChange={(e) => updateField("type", e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-card focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="one_off">One-off prepayment</option>
               <option value="recurring">Recurring prepayment plan</option>
@@ -696,79 +699,79 @@ function PrepaymentEditorModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label htmlFor={`${formId}-mortgage-prepayment-amount-input`} className="block text-xs font-medium text-muted-foreground mb-1">
                 Amount (€)
               </label>
-              <input
+              <input id={`${formId}-mortgage-prepayment-amount-input`}
                 data-testid="mortgage-prepayment-amount-input"
                 type="number"
                 min={0.01}
                 step="0.01"
                 value={state.amount}
                 onChange={(e) => updateField("amount", e.target.value)}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label htmlFor={`${formId}-mortgage-prepayment-start-date`} className="block text-xs font-medium text-muted-foreground mb-1">
                 Effective Month
               </label>
-              <input
+              <input id={`${formId}-mortgage-prepayment-start-date`}
                 data-testid="mortgage-prepayment-start-date"
                 type="date"
                 value={state.startDate}
                 onChange={(e) => updateField("startDate", e.target.value)}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           </div>
 
           {state.type === "recurring" && (
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
-                End Month <span className="text-slate-400 font-normal">(optional)</span>
+              <label htmlFor={`${formId}-mortgage-prepayment-end-date`} className="block text-xs font-medium text-muted-foreground mb-1">
+                End Month <span className="text-muted-foreground font-normal">(optional)</span>
               </label>
-              <input
+              <input aria-describedby={`${formId}-mortgage-prepayment-end-date-hint`} id={`${formId}-mortgage-prepayment-end-date`}
                 data-testid="mortgage-prepayment-end-date"
                 type="date"
                 value={state.endDate}
                 onChange={(e) => updateField("endDate", e.target.value)}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
               />
-              <p className="text-xs text-slate-400 mt-1">
+              <p id={`${formId}-mortgage-prepayment-end-date-hint`} className="text-xs text-muted-foreground mt-1">
                 Recurs monthly until this date. Leave blank to continue until payoff.
               </p>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
-              Notes <span className="text-slate-400 font-normal">(optional)</span>
+            <label htmlFor={`${formId}-notes`} className="block text-xs font-medium text-muted-foreground mb-1">
+              Notes <span className="text-muted-foreground font-normal">(optional)</span>
             </label>
-            <textarea
+            <textarea id={`${formId}-notes`}
               value={state.notes}
               onChange={(e) => updateField("notes", e.target.value)}
               rows={3}
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full text-sm border border-border rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
 
           {error && (
-            <p className="text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+            <p id={`${formId}-error`} role="alert" className="text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>
           )}
 
           <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-50"
+              className="text-sm text-muted-foreground hover:text-foreground px-4 py-2 rounded-lg hover:bg-background"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover disabled:opacity-50"
             >
               {saving ? "Saving…" : prepayment ? "Save Changes" : "Record Prepayment"}
             </button>
@@ -790,6 +793,7 @@ function SimulationPanel({
   state: SimulationFormState;
   onChange: (field: keyof SimulationFormState, value: string) => void;
 }) {
+  const formId = useId();
   const router = useRouter();
   const [applying, setApplying] = useState(false);
   const scenario = getSimulationScenario(mortgage, state);
@@ -836,11 +840,11 @@ function SimulationPanel({
   }
 
   return (
-    <div data-testid="mortgage-simulation-panel" className="border border-blue-200 bg-blue-50/50 rounded-xl p-4 space-y-4">
+    <div role="group" aria-label="Mortgage simulation" aria-describedby={!simulation ? `${formId}-scenario-error` : undefined} aria-busy={applying} data-testid="mortgage-simulation-panel" className="border border-blue-200 bg-accent/50 rounded-xl p-4 space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-slate-800">Simulation</p>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-sm font-semibold text-foreground">Simulation</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
             Baseline stays contractual. This overlay is hypothetical until you explicitly apply it.
           </p>
         </div>
@@ -848,12 +852,12 @@ function SimulationPanel({
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">Simulation type</label>
-          <select
+          <label htmlFor={`${formId}-mortgage-simulation-type`} className="block text-xs font-medium text-muted-foreground mb-1">Simulation type</label>
+          <select id={`${formId}-mortgage-simulation-type`}
             data-testid="mortgage-simulation-type"
             value={state.mode}
             onChange={(e) => onChange("mode", e.target.value)}
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-card focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="recurring_extra">Recurring extra prepayment</option>
             <option value="lump_sum">One-off lump sum prepayment</option>
@@ -861,30 +865,30 @@ function SimulationPanel({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">Start month</label>
-          <input
+          <label htmlFor={`${formId}-mortgage-simulation-start-date`} className="block text-xs font-medium text-muted-foreground mb-1">Start month</label>
+          <input id={`${formId}-mortgage-simulation-start-date`}
             data-testid="mortgage-simulation-start-date"
             type="date"
             value={state.startDate}
             onChange={(e) => onChange("startDate", e.target.value)}
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-card focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         {state.mode === "higher_payment" && (
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
+            <label htmlFor={`${formId}-mortgage-overpayment-input`} className="block text-xs font-medium text-muted-foreground mb-1">
               New monthly payment
             </label>
-            <input
+            <input aria-describedby={`${formId}-mortgage-overpayment-input-hint`} id={`${formId}-mortgage-overpayment-input`}
               data-testid="mortgage-overpayment-input"
               type="number"
               min={mortgage.monthlyPayment}
               step="0.01"
               value={state.higherMonthlyPayment}
               onChange={(e) => onChange("higherMonthlyPayment", e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-card focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            <p className="text-xs text-slate-400 mt-1">
+            <p id={`${formId}-mortgage-overpayment-input-hint`} className="text-xs text-muted-foreground mt-1">
               Baseline is {formatCurrency(mortgage.monthlyPayment)}.
             </p>
           </div>
@@ -892,29 +896,29 @@ function SimulationPanel({
         {state.mode === "lump_sum" && (
           <>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label htmlFor={`${formId}-mortgage-lump-sum-input`} className="block text-xs font-medium text-muted-foreground mb-1">
                 Lump-sum amount
               </label>
-              <input
+              <input id={`${formId}-mortgage-lump-sum-input`}
                 data-testid="mortgage-lump-sum-input"
                 type="number"
                 min={0.01}
                 step="0.01"
                 value={state.lumpSumAmount}
                 onChange={(e) => onChange("lumpSumAmount", e.target.value)}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-card focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label htmlFor={`${formId}-mortgage-lump-sum-date`} className="block text-xs font-medium text-muted-foreground mb-1">
                 Lump-sum month
               </label>
-              <input
+              <input id={`${formId}-mortgage-lump-sum-date`}
                 data-testid="mortgage-lump-sum-date"
                 type="date"
                 value={state.lumpSumDate}
                 onChange={(e) => onChange("lumpSumDate", e.target.value)}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-card focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           </>
@@ -922,29 +926,29 @@ function SimulationPanel({
         {state.mode === "recurring_extra" && (
           <>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label htmlFor={`${formId}-mortgage-recurring-extra-input`} className="block text-xs font-medium text-muted-foreground mb-1">
                 Extra per month
               </label>
-              <input
+              <input id={`${formId}-mortgage-recurring-extra-input`}
                 data-testid="mortgage-recurring-extra-input"
                 type="number"
                 min={0.01}
                 step="0.01"
                 value={state.extraRecurringAmount}
                 onChange={(e) => onChange("extraRecurringAmount", e.target.value)}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-card focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
+              <label htmlFor={`${formId}-mortgage-simulation-end-date`} className="block text-xs font-medium text-muted-foreground mb-1">
                 Optional end month
               </label>
-              <input
+              <input id={`${formId}-mortgage-simulation-end-date`}
                 data-testid="mortgage-simulation-end-date"
                 type="date"
                 value={state.endDate}
                 onChange={(e) => onChange("endDate", e.target.value)}
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-card focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           </>
@@ -952,7 +956,7 @@ function SimulationPanel({
       </div>
 
       {!simulation && (
-        <p className="text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2">
+        <p id={`${formId}-scenario-error`} role="status" className="text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2">
           Enter a valid scenario. Higher monthly payments must be at least the baseline.
         </p>
       )}
@@ -960,72 +964,72 @@ function SimulationPanel({
       {simulation && (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
-              <p className="text-lg font-bold text-slate-900">
+            <div className="bg-card rounded-xl border border-border px-4 py-3">
+              <p className="text-lg font-bold text-foreground">
                 {formatMonthYear(simulation.simulatedPayoffDate)}
               </p>
-              <p className="text-xs text-slate-500 mt-0.5">Simulated payoff</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Simulated payoff</p>
             </div>
-            <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
-              <p className="text-lg font-bold text-slate-900">{simulation.monthsSaved}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Months saved</p>
+            <div className="bg-card rounded-xl border border-border px-4 py-3">
+              <p className="text-lg font-bold text-foreground">{simulation.monthsSaved}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Months saved</p>
             </div>
-            <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
+            <div className="bg-card rounded-xl border border-border px-4 py-3">
               <p className="text-lg font-bold text-emerald-600">
                 {formatCurrency(simulation.interestSavings)}
               </p>
-              <p className="text-xs text-slate-500 mt-0.5">Interest saved</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Interest saved</p>
             </div>
-            <div className="bg-white rounded-xl border border-slate-200 px-4 py-3">
-              <p className="text-lg font-bold text-slate-900">
+            <div className="bg-card rounded-xl border border-border px-4 py-3">
+              <p className="text-lg font-bold text-foreground">
                 {formatCurrency(simulation.totalExtraCashPaid)}
               </p>
-              <p className="text-xs text-slate-500 mt-0.5">Total extra cash paid</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Total extra cash paid</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 text-xs">
-            <div className="bg-white border border-slate-200 rounded-xl px-4 py-3">
-              <p className="font-semibold text-slate-700 mb-2">Current actual path</p>
-              <div className="space-y-1.5 text-slate-500">
+            <div className="bg-card border border-border rounded-xl px-4 py-3">
+              <p className="font-semibold text-foreground mb-2">Current actual path</p>
+              <div className="space-y-1.5 text-muted-foreground">
                 <div className="flex justify-between gap-4">
                   <span>Payoff</span>
-                  <span className="font-medium text-slate-800">
+                  <span className="font-medium text-foreground">
                     {formatMonthYear(actualOverview.payoffDate)}
                   </span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span>Interest remaining</span>
-                  <span className="font-medium text-slate-800">
+                  <span className="font-medium text-foreground">
                     {formatCurrency(actualOverview.totalProjectedInterestRemaining)}
                   </span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span>Baseline-only payoff</span>
-                  <span className="font-medium text-slate-800">
+                  <span className="font-medium text-foreground">
                     {formatMonthYear(baselineOverview.payoffDate)}
                   </span>
                 </div>
               </div>
             </div>
-            <div className="bg-white border border-blue-200 rounded-xl px-4 py-3">
-              <p className="font-semibold text-blue-700 mb-2">Simulation result</p>
-              <div className="space-y-1.5 text-slate-500">
+            <div className="bg-card border border-blue-200 rounded-xl px-4 py-3">
+              <p className="font-semibold text-primary mb-2">Simulation result</p>
+              <div className="space-y-1.5 text-muted-foreground">
                 <div className="flex justify-between gap-4">
                   <span>Simulated payoff</span>
-                  <span className="font-medium text-slate-800">
+                  <span className="font-medium text-foreground">
                     {formatMonthYear(simulation.simulatedPayoffDate)}
                   </span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span>Interest remaining</span>
-                  <span className="font-medium text-slate-800">
+                  <span className="font-medium text-foreground">
                     {formatCurrency(simulation.simulatedRemainingInterest)}
                   </span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span>Applied mode</span>
-                  <span className="font-medium text-slate-800">
+                  <span className="font-medium text-foreground">
                     {state.mode === "higher_payment"
                       ? "Higher payment"
                       : state.mode === "lump_sum"
@@ -1043,7 +1047,7 @@ function SimulationPanel({
               type="button"
               onClick={applySimulation}
               disabled={applying}
-              className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 shadow-sm"
+              className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover disabled:opacity-50 shadow-sm"
             >
               {applying ? "Applying…" : "Apply as Actual Prepayment Plan"}
             </button>
@@ -1081,15 +1085,15 @@ function PrepaymentHistory({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-xs font-semibold text-slate-700">Actual prepayment history</h3>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <h3 className="text-xs font-semibold text-foreground">Actual prepayment history</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
             Real extra payments and recurring plans that alter the effective schedule.
           </p>
         </div>
       </div>
 
       {prepayments.length === 0 ? (
-        <div className="bg-slate-50 rounded-xl px-4 py-3 text-xs text-slate-400">
+        <div className="bg-background rounded-xl px-4 py-3 text-xs text-muted-foreground">
           No actual prepayments recorded yet.
         </div>
       ) : (
@@ -1098,19 +1102,19 @@ function PrepaymentHistory({
             <div
               key={prepayment.id}
               data-testid={`mortgage-prepayment-row-${prepayment.id}`}
-              className="bg-white border border-slate-200 rounded-xl px-4 py-3"
+              className="bg-card border border-border rounded-xl px-4 py-3"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-medium text-slate-800">
+                    <p className="text-sm font-medium text-foreground">
                       {formatPrepaymentType(prepayment.type)}
                     </p>
-                    <span className="text-[11px] uppercase tracking-wide bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] uppercase tracking-wide bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
                       {prepayment.isActive ? "active" : "inactive"}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {formatCurrency(prepayment.amount)}
                     {normalizeMortgagePrepaymentType(prepayment.type) === "recurring"
                       ? " / month"
@@ -1120,19 +1124,19 @@ function PrepaymentHistory({
                     {prepayment.endDate ? ` · ends ${formatDate(prepayment.endDate)}` : ""}
                   </p>
                   {prepayment.notes && (
-                    <p className="text-xs text-slate-400 mt-1">{prepayment.notes}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{prepayment.notes}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-3 text-xs shrink-0">
                   <button
                     onClick={() => onEdit(prepayment)}
-                    className="text-slate-500 hover:text-slate-700 font-medium"
+                    className="text-muted-foreground hover:text-foreground font-medium"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleToggle(prepayment)}
-                    className="text-slate-500 hover:text-slate-700 font-medium"
+                    className="text-muted-foreground hover:text-foreground font-medium"
                   >
                     {prepayment.isActive ? "Pause" : "Resume"}
                   </button>
@@ -1253,46 +1257,46 @@ function MortgageDetailsModal({
     <>
       <div
         data-testid={embedded ? "mortgage-details-page" : "mortgage-details-modal"}
-        className={`w-full ${embedded ? "" : "max-w-5xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl"}`}
+        className={`w-full ${embedded ? "" : "max-w-5xl max-h-[90vh] overflow-y-auto bg-card rounded-2xl shadow-2xl"}`}
         onClick={(e) => {
           if (!embedded) e.stopPropagation();
         }}
       >
-        <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-slate-100">
+        <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-border">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-sm font-semibold text-slate-800">
+              <h2 className="text-sm font-semibold text-foreground">
                 {mortgage.label || mortgage.lender || "Mortgage"}
               </h2>
-              <span className="text-[11px] uppercase tracking-wide bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+              <span className="text-[11px] uppercase tracking-wide bg-accent text-primary px-2 py-0.5 rounded-full">
                 {formatMortgageType(mortgage.type)}
               </span>
               {!mortgage.isActive && (
-                <span className="text-[11px] uppercase tracking-wide bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+                <span className="text-[11px] uppercase tracking-wide bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
                   inactive
                 </span>
               )}
             </div>
             {mortgage.lender && (
-              <p className="text-xs text-slate-400 mt-0.5">{mortgage.lender}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{mortgage.lender}</p>
             )}
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleExportCsv}
-              className="text-xs text-slate-500 hover:text-slate-700 font-medium"
+              className="text-xs text-muted-foreground hover:text-foreground font-medium"
             >
               Export CSV
             </button>
             <button
               onClick={onEdit}
-              className="text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors shadow-sm"
+              className="text-xs font-medium text-white bg-primary hover:bg-primary-hover px-3 py-2 rounded-lg transition-colors shadow-sm"
             >
               Edit Mortgage
             </button>
             <button
               onClick={onClose}
-              className={`${embedded ? "text-xs text-slate-500 hover:text-slate-700 font-medium border border-slate-200 rounded-lg px-3 py-2" : "text-slate-400 hover:text-slate-600 text-lg leading-none mt-0.5"}`}
+              className={`${embedded ? "text-xs text-muted-foreground hover:text-foreground font-medium border border-border rounded-lg px-3 py-2" : "text-muted-foreground hover:text-muted-foreground text-lg leading-none mt-0.5"}`}
             >
               {closeLabel}
             </button>
@@ -1301,59 +1305,59 @@ function MortgageDetailsModal({
 
         <div className="px-6 py-5 space-y-5">
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-            <div className="bg-slate-50 rounded-xl px-4 py-3">
-              <p className="text-lg font-bold text-slate-900">
+            <div className="bg-background rounded-xl px-4 py-3">
+              <p className="text-lg font-bold text-foreground">
                 {formatCurrency(mortgage.monthlyPayment)}
               </p>
-              <p className="text-xs text-slate-500 mt-0.5">Monthly payment</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Monthly payment</p>
             </div>
-            <div className="bg-slate-50 rounded-xl px-4 py-3">
-              <p className="text-lg font-bold text-slate-900">
+            <div className="bg-background rounded-xl px-4 py-3">
+              <p className="text-lg font-bold text-foreground">
                 {formatCurrency(actualOverview.currentBalance)}
               </p>
-              <p className="text-xs text-slate-500 mt-0.5">Current remaining balance</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Current remaining balance</p>
             </div>
-            <div className="bg-slate-50 rounded-xl px-4 py-3">
-              <p className="text-lg font-bold text-slate-900">{formatRate(mortgage.interestRate)}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Interest rate</p>
+            <div className="bg-background rounded-xl px-4 py-3">
+              <p className="text-lg font-bold text-foreground">{formatRate(mortgage.interestRate)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Interest rate</p>
             </div>
-            <div className="bg-slate-50 rounded-xl px-4 py-3">
-              <p className="text-lg font-bold text-slate-900">
+            <div className="bg-background rounded-xl px-4 py-3">
+              <p className="text-lg font-bold text-foreground">
                 {formatMonthYear(actualOverview.payoffDate)}
               </p>
-              <p className="text-xs text-slate-500 mt-0.5">Estimated payoff date</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Estimated payoff date</p>
             </div>
-            <div className="bg-slate-50 rounded-xl px-4 py-3">
-              <p className="text-lg font-bold text-slate-900">
+            <div className="bg-background rounded-xl px-4 py-3">
+              <p className="text-lg font-bold text-foreground">
                 {formatCurrency(actualOverview.totalProjectedInterestRemaining)}
               </p>
-              <p className="text-xs text-slate-500 mt-0.5">Projected interest remaining</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Projected interest remaining</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-            <div className="bg-white border border-slate-200 rounded-xl px-4 py-3">
-              <p className="text-slate-400">Started</p>
-              <p className="font-medium text-slate-800 mt-1">{formatDate(mortgage.startDate)}</p>
+            <div className="bg-card border border-border rounded-xl px-4 py-3">
+              <p className="text-muted-foreground">Started</p>
+              <p className="font-medium text-foreground mt-1">{formatDate(mortgage.startDate)}</p>
             </div>
-            <div className="bg-white border border-slate-200 rounded-xl px-4 py-3">
-              <p className="text-slate-400">Maturity</p>
-              <p className="font-medium text-slate-800 mt-1">
+            <div className="bg-card border border-border rounded-xl px-4 py-3">
+              <p className="text-muted-foreground">Maturity</p>
+              <p className="font-medium text-foreground mt-1">
                 {formatMonthYear(actualOverview.maturityDate)}
               </p>
             </div>
             {hasActualPrepayments && (
-              <div className="bg-white border border-slate-200 rounded-xl px-4 py-3">
-                <p className="text-slate-400">Baseline payoff</p>
-                <p className="font-medium text-slate-800 mt-1">
+              <div className="bg-card border border-border rounded-xl px-4 py-3">
+                <p className="text-muted-foreground">Baseline payoff</p>
+                <p className="font-medium text-foreground mt-1">
                   {formatMonthYear(baselineOverview.payoffDate)}
                 </p>
               </div>
             )}
             {hasActualPrepayments && (
-              <div className="bg-white border border-slate-200 rounded-xl px-4 py-3">
-                <p className="text-slate-400">Prepayments</p>
-                <p className="font-medium text-slate-800 mt-1">
+              <div className="bg-card border border-border rounded-xl px-4 py-3">
+                <p className="text-muted-foreground">Prepayments</p>
+                <p className="font-medium text-foreground mt-1">
                   {mortgage.prepayments?.length ?? 0}
                 </p>
               </div>
@@ -1367,8 +1371,8 @@ function MortgageDetailsModal({
               onClick={() => setShowSimulation((current) => !current)}
               className={`text-xs font-medium rounded-lg px-3 py-2 transition-colors ${
                 showSimulation
-                  ? "border border-blue-200 bg-blue-50 text-blue-700 shadow-sm"
-                  : "border border-slate-200 text-slate-700 hover:text-slate-900"
+                  ? "border border-blue-200 bg-accent text-primary shadow-sm"
+                  : "border border-border text-foreground hover:text-foreground"
               }`}
             >
               {showSimulation ? "Simulation On" : "Run Simulation"}
@@ -1404,11 +1408,11 @@ function MortgageDetailsModal({
             </div>
           )}
 
-          <div className="border border-slate-200 rounded-xl p-4 space-y-4">
+          <div className="border border-border rounded-xl p-4 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="text-xs font-semibold text-slate-700">Mortgage analysis</h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <h3 className="text-xs font-semibold text-foreground">Mortgage analysis</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Baseline is contractual. Actual includes saved prepayments. Simulation is hypothetical.
                 </p>
               </div>
@@ -1418,8 +1422,8 @@ function MortgageDetailsModal({
                   onClick={() => setChartTab("annual")}
                   className={`px-3 py-1.5 rounded-lg border ${
                     chartTab === "annual"
-                      ? "border-blue-200 bg-blue-50 text-blue-700"
-                      : "border-slate-200 text-slate-500"
+                      ? "border-blue-200 bg-accent text-primary"
+                      : "border-border text-muted-foreground"
                   }`}
                 >
                   Annual payment breakdown
@@ -1429,8 +1433,8 @@ function MortgageDetailsModal({
                   onClick={() => setChartTab("balance")}
                   className={`px-3 py-1.5 rounded-lg border ${
                     chartTab === "balance"
-                      ? "border-blue-200 bg-blue-50 text-blue-700"
-                      : "border-slate-200 text-slate-500"
+                      ? "border-blue-200 bg-accent text-primary"
+                      : "border-border text-muted-foreground"
                   }`}
                 >
                   Remaining balance over time
@@ -1446,8 +1450,8 @@ function MortgageDetailsModal({
                     onClick={() => setAnnualMode("baseline")}
                     className={`px-3 py-1.5 rounded-lg border ${
                       effectiveAnnualMode === "baseline"
-                        ? "border-slate-300 bg-slate-100 text-slate-700"
-                        : "border-slate-200 text-slate-500"
+                        ? "border-input bg-muted text-foreground"
+                        : "border-border text-muted-foreground"
                     }`}
                   >
                     Baseline
@@ -1458,7 +1462,7 @@ function MortgageDetailsModal({
                     className={`px-3 py-1.5 rounded-lg border ${
                       effectiveAnnualMode === "actual"
                         ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                        : "border-slate-200 text-slate-500"
+                        : "border-border text-muted-foreground"
                     }`}
                   >
                     Actual
@@ -1469,8 +1473,8 @@ function MortgageDetailsModal({
                       onClick={() => setAnnualMode("simulation")}
                       className={`px-3 py-1.5 rounded-lg border ${
                         effectiveAnnualMode === "simulation"
-                          ? "border-blue-200 bg-blue-50 text-blue-700"
-                          : "border-slate-200 text-slate-500"
+                          ? "border-blue-200 bg-accent text-primary"
+                          : "border-border text-muted-foreground"
                       }`}
                     >
                       Simulation
@@ -1539,7 +1543,7 @@ function MortgageDetailsModal({
                 </div>
 
                 {balloonExcluded && (
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-muted-foreground">
                     Chart note: balloon principal is excluded from the default bar stack for readability,
                     but it still affects the saved schedule and property cash-flow model.
                   </p>
@@ -1554,7 +1558,7 @@ function MortgageDetailsModal({
                       checked={showBaselineLine}
                       onChange={(e) => setShowBaselineLine(e.target.checked)}
                     />
-                    <span className="text-slate-600">Baseline</span>
+                    <span className="text-muted-foreground">Baseline</span>
                   </label>
                   <label className="inline-flex items-center gap-2">
                     <input
@@ -1562,7 +1566,7 @@ function MortgageDetailsModal({
                       checked={showActualLine}
                       onChange={(e) => setShowActualLine(e.target.checked)}
                     />
-                    <span className="text-slate-600">Actual</span>
+                    <span className="text-muted-foreground">Actual</span>
                   </label>
                   <label className="inline-flex items-center gap-2">
                     <input
@@ -1571,7 +1575,7 @@ function MortgageDetailsModal({
                       onChange={(e) => setShowSimulationLine(e.target.checked)}
                       disabled={!simulation}
                     />
-                    <span className="text-slate-600">Simulation</span>
+                    <span className="text-muted-foreground">Simulation</span>
                   </label>
                 </div>
 
@@ -1631,7 +1635,7 @@ function MortgageDetailsModal({
                   </ResponsiveContainer>
                 </div>
 
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-muted-foreground">
                   The balance chart compares the contractual path, the real saved schedule with actual
                   prepayments, and the current hypothetical simulation when enabled.
                 </p>
@@ -1640,24 +1644,24 @@ function MortgageDetailsModal({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-white border border-slate-200 rounded-xl px-4 py-3">
-              <p className="text-xs font-semibold text-slate-700">Lifecycle</p>
-              <div className="mt-3 space-y-2 text-xs text-slate-500">
+            <div className="bg-card border border-border rounded-xl px-4 py-3">
+              <p className="text-xs font-semibold text-foreground">Lifecycle</p>
+              <div className="mt-3 space-y-2 text-xs text-muted-foreground">
                 <div className="flex justify-between gap-4">
                   <span>Mortgage created</span>
-                  <span className="font-medium text-slate-800">{formatDate(mortgage.createdAt)}</span>
+                  <span className="font-medium text-foreground">{formatDate(mortgage.createdAt)}</span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span>Last edited</span>
-                  <span className="font-medium text-slate-800">{formatDate(mortgage.updatedAt)}</span>
+                  <span className="font-medium text-foreground">{formatDate(mortgage.updatedAt)}</span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span>Term</span>
-                  <span className="font-medium text-slate-800">{formatTerm(mortgage.termMonths)}</span>
+                  <span className="font-medium text-foreground">{formatTerm(mortgage.termMonths)}</span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span>Current-month real cash cost</span>
-                  <span className="font-medium text-slate-800">
+                  <span className="font-medium text-foreground">
                     {formatCurrency(
                       getMonthlyCostForMonth(
                         mortgage,
@@ -1671,9 +1675,9 @@ function MortgageDetailsModal({
             </div>
 
             {mortgage.notes && (
-              <div className="bg-slate-50 rounded-xl px-4 py-3">
-                <p className="text-xs font-semibold text-slate-700">Notes</p>
-                <p className="text-sm text-slate-600 mt-1 whitespace-pre-wrap">{mortgage.notes}</p>
+              <div className="bg-background rounded-xl px-4 py-3">
+                <p className="text-xs font-semibold text-foreground">Notes</p>
+                <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{mortgage.notes}</p>
               </div>
             )}
           </div>
@@ -1687,7 +1691,7 @@ function MortgageDetailsModal({
             }}
           />
 
-          <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+          <div className="flex items-center justify-between pt-1 border-t border-border">
             <button
               onClick={handleDelete}
               disabled={deleting}
@@ -1698,7 +1702,7 @@ function MortgageDetailsModal({
             <button
               onClick={handleToggle}
               disabled={toggling}
-              className="text-xs text-slate-500 hover:text-slate-700 disabled:opacity-50"
+              className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
             >
               {mortgage.isActive ? "Mark as inactive" : "Mark as active"}
             </button>
@@ -1721,7 +1725,7 @@ function MortgageDetailsModal({
   );
 
   if (embedded) {
-    return <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">{content}</div>;
+    return <div className="bg-card border border-border rounded-2xl overflow-hidden">{content}</div>;
   }
 
   return (
@@ -1756,45 +1760,45 @@ function MortgageCard({
 
   return (
     <>
-      <div className={`bg-white border rounded-xl px-5 py-4 ${mortgage.isActive ? "border-slate-200" : "border-slate-100 opacity-60"}`}>
+      <div className={`bg-card border rounded-xl px-5 py-4 ${mortgage.isActive ? "border-border" : "border-border opacity-60"}`}>
         <div data-testid={`mortgage-card-${mortgage.id}`}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-sm font-semibold text-slate-800 truncate">
+                <p className="text-sm font-semibold text-foreground truncate">
                   {mortgage.label || mortgage.lender || "Mortgage"}
                 </p>
-                <span className="text-[11px] uppercase tracking-wide bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+                <span className="text-[11px] uppercase tracking-wide bg-accent text-primary px-2 py-0.5 rounded-full">
                   {formatMortgageType(mortgage.type)}
                 </span>
                 {!mortgage.isActive && (
-                  <span className="text-[11px] uppercase tracking-wide bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] uppercase tracking-wide bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
                     inactive
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 {formatDate(mortgage.startDate)} to {formatMonthYear(maturityDate)}
               </p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <button
                 onClick={() => setShowEdit(true)}
-                className="text-xs text-slate-500 hover:text-slate-700 font-medium"
+                className="text-xs text-muted-foreground hover:text-foreground font-medium"
               >
                 Edit
               </button>
               {detailsHref ? (
                 <Link
                   href={detailsHref}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-xs text-primary hover:text-primary font-medium"
                 >
                   Details
                 </Link>
               ) : (
                 <button
                   onClick={() => setShowDetails(true)}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-xs text-primary hover:text-primary font-medium"
                 >
                   Details
                 </button>
@@ -1804,36 +1808,36 @@ function MortgageCard({
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
             <div>
-              <p className="text-sm font-bold text-slate-900">
+              <p className="text-sm font-bold text-foreground">
                 {formatCurrency(mortgage.monthlyPayment)}
               </p>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {type === "bullet" ? "interest / month" : "baseline / month"}
               </p>
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-900">
+              <p className="text-sm font-bold text-foreground">
                 {formatCurrency(currentBalance)}
               </p>
-              <p className="text-xs text-slate-400 mt-0.5">remaining balance</p>
+              <p className="text-xs text-muted-foreground mt-0.5">remaining balance</p>
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-900">{formatRate(mortgage.interestRate)}</p>
-              <p className="text-xs text-slate-400 mt-0.5">annual rate</p>
+              <p className="text-sm font-bold text-foreground">{formatRate(mortgage.interestRate)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">annual rate</p>
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-900">
+              <p className="text-sm font-bold text-foreground">
                 {(mortgage.prepayments?.length ?? 0) > 0 ? mortgage.prepayments?.length : "—"}
               </p>
-              <p className="text-xs text-slate-400 mt-0.5">actual prepayments</p>
+              <p className="text-xs text-muted-foreground mt-0.5">actual prepayments</p>
             </div>
           </div>
 
           <div className="mt-3">
-            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
               <div className="h-full bg-blue-400 rounded-full" style={{ width: `${progressPct}%` }} />
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {progressPct}% elapsed · {formatTerm(Math.max(0, mortgage.termMonths - elapsed))} remaining
             </p>
           </div>
@@ -1890,9 +1894,9 @@ export function MortgagesSection({
       <div data-testid="mortgages-section">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-sm font-semibold text-slate-800">Mortgages</h2>
+            <h2 className="text-sm font-semibold text-foreground">Mortgages</h2>
             {mortgages.length > 0 && (
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {formatCurrency(currentMonthCost)} current-month financing cost across{" "}
                 {mortgages.filter((mortgage) => mortgage.isActive).length} active
                 {bulletCount > 0 ? ` · ${bulletCount} bullet` : ""}
@@ -1901,18 +1905,18 @@ export function MortgagesSection({
           </div>
           <button
             onClick={() => setShowAdd(true)}
-            className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+            className="text-xs text-primary hover:text-primary font-medium"
           >
             + Add Mortgage
           </button>
         </div>
 
         {mortgages.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-xl px-5 py-6 text-center">
-            <p className="text-xs text-slate-400">No mortgages recorded.</p>
+          <div className="bg-card border border-border rounded-xl px-5 py-6 text-center">
+            <p className="text-xs text-muted-foreground">No mortgages recorded.</p>
             <button
               onClick={() => setShowAdd(true)}
-              className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium"
+              className="mt-2 text-xs text-primary hover:text-primary font-medium"
             >
               Add first mortgage →
             </button>

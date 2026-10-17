@@ -17,7 +17,7 @@ interface BadgeProps {
 }
 
 export function RoomStatusBadge({ status, className, size = "md" }: BadgeProps & { status: string }) {
-  const color = ROOM_STATUS_COLORS[status as RoomStatus] ?? "bg-slate-100 text-slate-700";
+  const color = ROOM_STATUS_COLORS[status as RoomStatus] ?? "bg-muted text-foreground";
   const label = ROOM_STATUS_LABELS[status as RoomStatus] ?? status;
   return (
     <span className={cn(
@@ -31,7 +31,7 @@ export function RoomStatusBadge({ status, className, size = "md" }: BadgeProps &
 }
 
 export function PaymentStatusBadge({ status, className, size = "md" }: BadgeProps & { status: string }) {
-  const color = PAYMENT_STATUS_COLORS[status as PaymentStatus] ?? "bg-slate-100 text-slate-700";
+  const color = PAYMENT_STATUS_COLORS[status as PaymentStatus] ?? "bg-muted text-foreground";
   const label = PAYMENT_STATUS_LABELS[status as PaymentStatus] ?? status;
   return (
     <span className={cn(
@@ -45,7 +45,7 @@ export function PaymentStatusBadge({ status, className, size = "md" }: BadgeProp
 }
 
 export function TenantStatusBadge({ status, className, size = "md" }: BadgeProps & { status: string }) {
-  const color = TENANT_STATUS_COLORS[status as TenantStatus] ?? "bg-slate-100 text-slate-700";
+  const color = TENANT_STATUS_COLORS[status as TenantStatus] ?? "bg-muted text-foreground";
   const label = TENANT_STATUS_LABELS[status as TenantStatus] ?? status;
   return (
     <span className={cn(
@@ -60,7 +60,7 @@ export function TenantStatusBadge({ status, className, size = "md" }: BadgeProps
 
 export function DepositStatusBadge({ status, className, size = "md" }: BadgeProps & { status: string }) {
   const colorMap: Record<string, string> = {
-    PENDING: "bg-slate-100 text-slate-700",
+    PENDING: "bg-muted text-foreground",
     PARTIAL: "bg-amber-100 text-amber-800",
     RECEIVED: "bg-green-100 text-green-800",
     REFUNDED: "bg-purple-100 text-purple-800",
@@ -75,7 +75,7 @@ export function DepositStatusBadge({ status, className, size = "md" }: BadgeProp
     PARTIAL_REFUND: "Part. Refund",
     DEDUCTED: "Deducted",
   };
-  const color = colorMap[status] ?? "bg-slate-100 text-slate-700";
+  const color = colorMap[status] ?? "bg-muted text-foreground";
   const label = labelMap[status] ?? status;
   return (
     <span className={cn(

@@ -40,11 +40,11 @@ export function PaymentHistorySection({
   const endIndex = Math.min(safePage * PAGE_SIZE, payments.length);
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl">
-      <div className="px-5 py-4 border-b border-slate-100 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="bg-card border border-border rounded-xl">
+      <div className="px-5 py-4 border-b border-border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-slate-800">Payment History</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h2 className="text-sm font-semibold text-foreground">Payment History</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
             Showing the latest {Math.min(PAGE_SIZE, payments.length)} payments first
           </p>
         </div>
@@ -53,7 +53,7 @@ export function PaymentHistorySection({
           <a
             href={`/api/rooms/${roomId}/payments/export`}
             data-testid="payment-history-export"
-            className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+            className="inline-flex items-center justify-center rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-background transition-colors"
           >
             Export to Excel
           </a>
@@ -61,41 +61,41 @@ export function PaymentHistorySection({
       </div>
 
       {payments.length === 0 ? (
-        <p className="px-5 py-8 text-sm text-slate-500 text-center">
+        <p className="px-5 py-8 text-sm text-muted-foreground text-center">
           No payment history yet.
         </p>
       ) : (
         <>
-          <div className="divide-y divide-slate-100 md:hidden">
+          <div className="divide-y divide-border md:hidden">
             {visiblePayments.map((payment) => (
               <div key={payment.id} className="px-4 py-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-800">
+                    <p className="text-sm font-semibold text-foreground">
                       {formatMonthYear(payment.periodYear, payment.periodMonth)}
                     </p>
-                    <p className="truncate text-xs text-slate-500">{payment.payerName}</p>
+                    <p className="truncate text-xs text-muted-foreground">{payment.payerName}</p>
                   </div>
                   <PaymentStatusBadge status={computePaymentStatus(payment)} size="sm" />
                 </div>
                 <dl className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <dt className="text-xs text-slate-500">Due</dt>
-                    <dd className="mt-1 font-medium text-slate-800">{formatCurrency(payment.amountDue)}</dd>
+                    <dt className="text-xs text-muted-foreground">Due</dt>
+                    <dd className="mt-1 font-medium text-foreground">{formatCurrency(payment.amountDue)}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-slate-500">Paid</dt>
-                    <dd className="mt-1 font-medium text-slate-800">
+                    <dt className="text-xs text-muted-foreground">Paid</dt>
+                    <dd className="mt-1 font-medium text-foreground">
                       {payment.amountPaid > 0 ? formatCurrency(payment.amountPaid) : "—"}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-slate-500">Date Paid</dt>
-                    <dd className="mt-1 text-slate-700">{formatDate(payment.paidAt)}</dd>
+                    <dt className="text-xs text-muted-foreground">Date Paid</dt>
+                    <dd className="mt-1 text-foreground">{formatDate(payment.paidAt)}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-slate-500">Method</dt>
-                    <dd className="mt-1 text-slate-700">
+                    <dt className="text-xs text-muted-foreground">Method</dt>
+                    <dd className="mt-1 text-foreground">
                       {payment.paymentMethod?.replaceAll("_", " ") ?? "—"}
                     </dd>
                   </div>
@@ -107,31 +107,31 @@ export function PaymentHistorySection({
           <div className="hidden overflow-x-auto md:block">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Period</th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Payer</th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Due</th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Paid</th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Date Paid</th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Method</th>
-                  <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Status</th>
+                <tr className="border-b border-border">
+                  <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Period</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Payer</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Due</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Paid</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Date Paid</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Method</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-border">
                 {visiblePayments.map((payment) => (
-                  <tr key={payment.id} className="hover:bg-slate-50">
-                    <td className="px-5 py-3 font-medium text-slate-800">
+                  <tr key={payment.id} className="hover:bg-background">
+                    <td className="px-5 py-3 font-medium text-foreground">
                       {formatMonthYear(payment.periodYear, payment.periodMonth)}
                     </td>
-                    <td className="px-5 py-3 text-slate-700" data-testid="payment-history-payer">
+                    <td className="px-5 py-3 text-foreground" data-testid="payment-history-payer">
                       {payment.payerName}
                     </td>
-                    <td className="px-5 py-3 text-slate-700">{formatCurrency(payment.amountDue)}</td>
-                    <td className="px-5 py-3 text-slate-700" data-testid="payment-history-paid">
+                    <td className="px-5 py-3 text-foreground">{formatCurrency(payment.amountDue)}</td>
+                    <td className="px-5 py-3 text-foreground" data-testid="payment-history-paid">
                       {payment.amountPaid > 0 ? formatCurrency(payment.amountPaid) : "—"}
                     </td>
-                    <td className="px-5 py-3 text-slate-500">{formatDate(payment.paidAt)}</td>
-                    <td className="px-5 py-3 text-slate-500">
+                    <td className="px-5 py-3 text-muted-foreground">{formatDate(payment.paidAt)}</td>
+                    <td className="px-5 py-3 text-muted-foreground">
                       {payment.paymentMethod?.replaceAll("_", " ") ?? "—"}
                     </td>
                     <td className="px-5 py-3">
@@ -143,8 +143,8 @@ export function PaymentHistorySection({
             </table>
           </div>
 
-          <div className="px-4 py-4 border-t border-slate-100 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-            <p className="text-xs text-slate-500">
+          <div className="px-4 py-4 border-t border-border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <p className="text-xs text-muted-foreground">
               Showing {startIndex}-{endIndex} of {payments.length}
             </p>
 
@@ -154,11 +154,11 @@ export function PaymentHistorySection({
                 data-testid="payment-history-prev"
                 disabled={safePage <= 1}
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                className="rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-background disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
               >
                 Previous
               </button>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-muted-foreground">
                 Page {safePage} of {totalPages}
               </span>
               <button
@@ -166,7 +166,7 @@ export function PaymentHistorySection({
                 data-testid="payment-history-next"
                 disabled={safePage >= totalPages}
                 onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                className="rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-background disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
               >
                 Next
               </button>

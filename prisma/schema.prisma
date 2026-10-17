@@ -44,6 +44,7 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  verityConnection VerityConnection?
   properties   Property[]
   tenants      Tenant[]
   tenantDocuments TenantDocument[]
@@ -526,4 +527,90 @@ model ActivityLog {
   occupancy   Occupancy? @relation("OccupancyActivity", fields: [occupancyId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+}
+
+// Verity remains the read-only source of bank transactions. These tables stage
+// source snapshots and store explicit, reversible Rental allocations only.
+model VerityConnection {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  remoteOwnerId      String   @unique
+  remoteConnectionId String
+  encryptedToken     String?
+  accountsJson       String   @default("[]")
+  status             String   @default("CONNECTED")
+  revokePending      Boolean  @default(false)
+  revision           Int      @default(0)
+  lastSyncedAt       DateTime?
+  lastError          String?
+  contextLeaseToken  String?
+  contextLeaseUntil  DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions       VerityTransaction[]
+}
+
+model VerityTransaction {
+  id                 String   @id @default(cuid())
+  connectionId       String
+  userId             String
+  externalId         String
+  accountId          String
+  accountName        String
+  postedDate         String
+  amountMinor        BigInt
+  currency           String
+  description        String
+  counterpartyName   String?
+  counterpartyIban   String?
+  sourceKey          String?
+  sourceUpdatedAt    String
+  fingerprint        String
+  originalJson       String
+  payloadJson        String
+  status             String   @default("READY")
+  reviewReason       String?
+  sourceMissing      Boolean  @default(false)
+  lastSeenAt         DateTime
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  connection         VerityConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  allocations        VerityAllocation[]
+  @@unique([userId, externalId])
+  @@unique([userId, sourceKey])
+  @@index([connectionId, status])
+}
+
+model VerityAllocation {
+  id                 String   @id @default(cuid())
+  userId             String
+  transactionId      String
+  idempotencyKey     String
+  requestHash        String
+  kind               String
+  targetId           String
+  targetLabel        String
+  propertyId         String
+  propertyName       String
+  amountMinor        BigInt
+  mode               String
+  status             String   @default("CONFIRMED")
+  sourceSnapshotJson String
+  ledgerBeforeJson   String?
+  ledgerAfterJson    String?
+  contextPayloadJson String
+  contextStatus      String   @default("PENDING")
+  contextOperation   String   @default("UPSERT")
+  contextVersion     Int      @default(1)
+  contextAttempts    Int      @default(0)
+  contextError       String?
+  contextSyncedAt    DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  undoneAt           DateTime?
+  transaction        VerityTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  @@unique([userId, idempotencyKey])
+  @@index([userId, kind, targetId, status])
+  @@index([userId, contextStatus])
 }

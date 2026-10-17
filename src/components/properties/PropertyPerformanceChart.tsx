@@ -26,15 +26,15 @@ function CustomTooltip({
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-sm px-3 py-2.5 text-xs">
-      <p className="font-semibold text-slate-700 mb-1.5">{label}</p>
+    <div className="bg-card border border-border rounded-lg shadow-sm px-3 py-2.5 text-xs">
+      <p className="font-semibold text-foreground mb-1.5">{label}</p>
       {payload.map((entry) => (
         <div key={entry.name} className="flex items-center gap-2">
           <span
             className="w-2 h-2 rounded-full shrink-0"
             style={{ background: entry.color }}
           />
-          <span className="text-slate-500 capitalize">{entry.name}:</span>
+          <span className="text-muted-foreground capitalize">{entry.name}:</span>
           <span
             className="font-medium ml-auto pl-3"
             style={{ color: entry.name === "profit" && entry.value < 0 ? "#ef4444" : entry.color }}
@@ -59,9 +59,9 @@ export function PropertyPerformanceChart({ data }: { data: ChartMonth[] }) {
     return (
       <div
         data-testid="property-performance-chart-empty"
-        className="bg-white border border-slate-200 rounded-xl px-5 py-8 text-center"
+        className="bg-card border border-border rounded-xl px-5 py-8 text-center"
       >
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-muted-foreground">
           No financial data yet. Add cost entries or occupancies to see performance trends.
         </p>
       </div>
@@ -73,14 +73,14 @@ export function PropertyPerformanceChart({ data }: { data: ChartMonth[] }) {
   return (
     <div
       data-testid="property-performance-chart"
-      className="bg-white border border-slate-200 rounded-xl px-5 pt-4 pb-3"
+      className="bg-card border border-border rounded-xl px-5 pt-4 pb-3"
     >
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-sm font-semibold text-slate-800">Financial Performance</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Last 12 months</p>
+          <h2 className="text-sm font-semibold text-foreground">Financial Performance</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Last 12 months</p>
         </div>
-        <div data-testid="property-performance-chart-legend" className="flex items-center gap-4 text-xs text-slate-500">
+        <div data-testid="property-performance-chart-legend" className="flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-sm bg-amber-400 shrink-0" />
             Costs
@@ -103,29 +103,29 @@ export function PropertyPerformanceChart({ data }: { data: ChartMonth[] }) {
         >
           <CartesianGrid
             vertical={false}
-            stroke="#f1f5f9"
+            stroke="var(--border)"
             strokeDasharray="3 3"
           />
           <XAxis
             dataKey="label"
-            tick={{ fontSize: 11, fill: "#94a3b8" }}
+            tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
             axisLine={false}
             tickLine={false}
             dy={6}
           />
           <YAxis
             tickFormatter={yAxisFormatter}
-            tick={{ fontSize: 11, fill: "#94a3b8" }}
+            tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
             axisLine={false}
             tickLine={false}
             width={44}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f8fafc" }} />
-          <ReferenceLine y={0} stroke="#e2e8f0" strokeWidth={1} />
+          <ReferenceLine y={0} stroke="var(--border)" strokeWidth={1} />
           <Bar
             dataKey="costs"
             name="costs"
-            fill="#fbbf24"
+            fill="var(--chart-3)"
             opacity={0.85}
             radius={[3, 3, 0, 0]}
             maxBarSize={36}
@@ -135,10 +135,10 @@ export function PropertyPerformanceChart({ data }: { data: ChartMonth[] }) {
               type="monotone"
               dataKey="profit"
               name="profit"
-              stroke="#10b981"
+              stroke="var(--success)"
               strokeWidth={2}
-              dot={{ r: 3, fill: "#10b981", strokeWidth: 0 }}
-              activeDot={{ r: 4, fill: "#10b981", strokeWidth: 0 }}
+              dot={{ r: 3, fill: "var(--success)", strokeWidth: 0 }}
+              activeDot={{ r: 4, fill: "var(--success)", strokeWidth: 0 }}
             />
           )}
         </ComposedChart>

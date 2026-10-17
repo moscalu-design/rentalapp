@@ -6,7 +6,7 @@ import { applyDepositTransaction } from "@/lib/depositUtils";
 import { toBillingDate } from "@/lib/occupancyPayments";
 import prisma from "@/lib/prisma";
 import { PaymentSchema, DepositTransactionSchema } from "@/lib/validations";
-import { computePaymentStatus } from "@/lib/utils";
+import { computePaymentStatus, formatCurrency } from "@/lib/utils";
 
 async function requireAuth() {
   return requireUser();
@@ -48,7 +48,7 @@ export async function recordPayment(paymentId: string, formData: FormData) {
   await prisma.activityLog.create({
     data: {
       action: "PAYMENT_RECORDED",
-      description: `Payment of £${validated.amountPaid} recorded for ${updated.occupancy.room.name} (${updated.periodMonth}/${updated.periodYear})`,
+      description: `Payment of ${formatCurrency(validated.amountPaid)} recorded for ${updated.occupancy.room.name} (${updated.periodMonth}/${updated.periodYear})`,
       entityType: "PAYMENT",
       entityId: paymentId,
       userId: user.id,

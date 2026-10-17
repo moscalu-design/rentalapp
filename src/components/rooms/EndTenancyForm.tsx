@@ -33,7 +33,7 @@ export function EndTenancyForm({ occupancyId, todayInputValue }: EndTenancyFormP
         type="button"
         data-testid="end-tenancy-btn"
         onClick={() => setOpen(true)}
-        className="text-xs text-red-600 hover:text-red-700 font-medium"
+        className="text-xs text-destructive hover:text-red-700 font-medium"
       >
         End Tenancy
       </button>
@@ -45,15 +45,15 @@ export function EndTenancyForm({ occupancyId, todayInputValue }: EndTenancyFormP
           onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl w-full max-w-sm"
+            className="bg-card rounded-2xl shadow-xl w-full max-w-sm"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100">
-              <h3 className="text-sm font-semibold text-slate-800">End Tenancy</h3>
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-border">
+              <h3 className="text-sm font-semibold text-foreground">End Tenancy</h3>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="text-slate-400 hover:text-slate-600 transition-colors text-lg leading-none"
+                className="text-muted-foreground hover:text-muted-foreground transition-colors text-lg leading-none"
               >
                 ×
               </button>
@@ -61,17 +61,17 @@ export function EndTenancyForm({ occupancyId, todayInputValue }: EndTenancyFormP
 
             <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
               {error && (
-                <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                <div className="text-xs text-destructive bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                   {error}
                 </div>
               )}
 
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 This will mark the tenancy as ended and set the room back to vacant.
               </p>
 
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
                   Move-out date
                 </label>
                 <input
@@ -79,7 +79,7 @@ export function EndTenancyForm({ occupancyId, todayInputValue }: EndTenancyFormP
                   type="date"
                   required
                   defaultValue={todayInputValue}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
               </div>
 
@@ -96,7 +96,7 @@ export function EndTenancyForm({ occupancyId, todayInputValue }: EndTenancyFormP
                   type="button"
                   onClick={() => setOpen(false)}
                   disabled={pending}
-                  className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Cancel
                 </button>

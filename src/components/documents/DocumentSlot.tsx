@@ -32,8 +32,8 @@ function formatDate(d: Date | string): string {
 function FileIcon({ type }: { type: string }) {
   const isPdf = type === "application/pdf";
   return (
-    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${isPdf ? "bg-red-50" : "bg-blue-50"}`}>
-      <svg className={`w-5 h-5 ${isPdf ? "text-red-500" : "text-blue-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${isPdf ? "bg-red-50" : "bg-accent"}`}>
+      <svg className={`w-5 h-5 ${isPdf ? "text-red-500" : "text-primary"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
@@ -125,32 +125,32 @@ export function DocumentSlot({
   return (
     <div className="space-y-1.5" data-testid={`document-slot-${type}`}>
       {/* Label */}
-      <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p>
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
 
       {document ? (
         /* ── Filled state ── */
-        <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-lg p-3">
+        <div className="flex items-center gap-3 bg-card border border-border rounded-lg p-3">
           <FileIcon type="" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-slate-800 truncate">{document.fileName}</p>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-sm font-medium text-foreground truncate">{document.fileName}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
               {formatBytes(document.fileSize)} · uploaded {formatDate(document.uploadedAt)}
             </p>
           </div>
 
           {confirmDelete ? (
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-xs text-slate-500">Remove?</span>
+              <span className="text-xs text-muted-foreground">Remove?</span>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="text-xs font-medium text-red-600 hover:text-red-700 disabled:opacity-50"
+                className="text-xs font-medium text-destructive hover:text-red-700 disabled:opacity-50"
               >
                 {deleting ? "Removing…" : "Yes"}
               </button>
               <button
                 onClick={() => setConfirmDelete(false)}
-                className="text-xs font-medium text-slate-500 hover:text-slate-700"
+                className="text-xs font-medium text-muted-foreground hover:text-foreground"
               >
                 Cancel
               </button>
@@ -161,7 +161,7 @@ export function DocumentSlot({
                 href={`/api/documents/${document.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                className="p-1.5 text-muted-foreground hover:text-primary hover:bg-accent rounded transition-colors"
                 title="View"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -173,7 +173,7 @@ export function DocumentSlot({
               </a>
               <a
                 href={`/api/documents/${document.id}?dl=1`}
-                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                className="p-1.5 text-muted-foreground hover:text-primary hover:bg-accent rounded transition-colors"
                 title="Download"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -183,7 +183,7 @@ export function DocumentSlot({
               </a>
               <button
                 onClick={() => inputRef.current?.click()}
-                className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
+                className="p-1.5 text-muted-foreground hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
                 title="Replace"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -193,7 +193,7 @@ export function DocumentSlot({
               </button>
               <button
                 onClick={() => setConfirmDelete(true)}
-                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-red-50 rounded transition-colors"
                 title="Delete"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -206,17 +206,17 @@ export function DocumentSlot({
         </div>
       ) : uploading ? (
         /* ── Uploading state ── */
-        <div className="bg-white border border-blue-200 rounded-lg p-3">
+        <div className="bg-card border border-blue-200 rounded-lg p-3">
           <div className="flex items-center gap-2 mb-2">
-            <svg className="w-4 h-4 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
             </svg>
-            <span className="text-sm text-slate-600">Uploading…</span>
+            <span className="text-sm text-muted-foreground">Uploading…</span>
           </div>
-          <div className="w-full bg-slate-100 rounded-full h-1.5">
+          <div className="w-full bg-muted rounded-full h-1.5">
             <div
-              className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+              className="bg-primary h-1.5 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -229,8 +229,8 @@ export function DocumentSlot({
           onDrop={handleDrop}
           className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer
             ${dragOver
-              ? "border-blue-400 bg-blue-50"
-              : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+              ? "border-blue-400 bg-accent"
+              : "border-border hover:border-input hover:bg-background"
             }`}
           onClick={() => inputRef.current?.click()}
           role="button"
@@ -241,16 +241,16 @@ export function DocumentSlot({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
               d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          <p className="text-xs text-slate-500">
-            <span className="font-medium text-blue-600">Choose file</span> or drag & drop
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium text-primary">Choose file</span> or drag & drop
           </p>
-          <p className="text-xs text-slate-400 mt-0.5">PDF, JPG or PNG · max 4 MB</p>
+          <p className="text-xs text-muted-foreground mt-0.5">PDF, JPG or PNG · max 4 MB</p>
         </div>
       )}
 
       {/* Error message */}
       {error && (
-        <p className="text-xs text-red-600 flex items-center gap-1">
+        <p className="text-xs text-destructive flex items-center gap-1">
           <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>

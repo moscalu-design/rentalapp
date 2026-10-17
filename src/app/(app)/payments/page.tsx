@@ -5,6 +5,8 @@ import { ensureRentPaymentsForUser } from "@/lib/billing";
 import prisma from "@/lib/prisma";
 import { computePaymentStatus, formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
 import { requireUser } from "@/lib/currentUser";
+import { getPaymentAction } from "@/lib/paymentNavigation";
+import { parseLedgerFilters, paymentYearOptions, type QueryValue } from "@/lib/ledgerFilters";
 
 async function getPaymentsData(userId: string, year: number, month: number) {
   const payments = await prisma.payment.findMany({
@@ -35,38 +37,30 @@ async function getPaymentsData(userId: string, year: number, month: number) {
   return { payments: paymentsWithStatus, totalDue, totalPaid, totalOutstanding };
 }
 
-function buildMonthOptions() {
-  const options = [];
-  const now = new Date();
-  for (let i = 11; i >= 0; i--) {
-    let year = now.getFullYear();
-    let month = now.getMonth() + 1 - i;
-    if (month <= 0) { month += 12; year -= 1; }
-    options.push({ year, month });
-  }
-  return options;
-}
-
 export default async function PaymentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string; month?: string; status?: string }>;
+  searchParams: Promise<{ year?: QueryValue; month?: QueryValue; status?: QueryValue }>;
 }) {
   const sp = await searchParams;
   const user = await requireUser();
   const now = new Date();
   await ensureRentPaymentsForUser({ userId: user.id, now });
-  const year = Number(sp.year) || now.getFullYear();
-  const month = Number(sp.month) || (now.getMonth() + 1);
-  const statusFilter = sp.status ?? "";
+  const { year, month, status: statusFilter } = parseLedgerFilters(sp, now);
 
-  const { payments, totalDue, totalPaid, totalOutstanding } = await getPaymentsData(user.id, year, month);
-
+  const [{ payments, totalDue, totalPaid, totalOutstanding }, availablePeriods] = await Promise.all([
+    getPaymentsData(user.id, year, month),
+    prisma.payment.findMany({
+      where: { userId: user.id },
+      distinct: ["periodYear"],
+      select: { periodYear: true },
+    }),
+  ]);
   const filtered = statusFilter
-    ? payments.filter((p) => p.derivedStatus === statusFilter)
+    ? payments.filter((payment) => payment.derivedStatus === statusFilter)
     : payments;
-
-  const monthOptions = buildMonthOptions();
+  const yearOptions = paymentYearOptions(availablePeriods.map((period) => period.periodYear), year, now.getFullYear());
+  const periodHref = `/payments?year=${year}&month=${month}`;
 
   return (
     <div className="flex flex-col flex-1">
@@ -75,34 +69,36 @@ export default async function PaymentsPage({
         description={`${formatMonthYear(year, month)} rent ledger`}
       />
 
-      <div className="flex-1 p-4 sm:p-6 space-y-5">
+      <div className="rental-page flex-1 p-4 sm:p-6 space-y-5">
         {/* Summary */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-lg border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/40">
-            <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">Total Due</p>
-            <p className="mt-1 truncate text-2xl font-bold text-slate-800">{formatCurrency(totalDue)}</p>
+          <div className="rental-panel px-5 py-4">
+            <p className="text-sm text-muted-foreground font-medium">Total Due</p>
+            <p className="mt-1 truncate text-2xl font-semibold text-foreground">{formatCurrency(totalDue)}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/40">
-            <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">Collected</p>
-            <p className="mt-1 truncate text-2xl font-bold text-green-700">{formatCurrency(totalPaid)}</p>
+          <div className="rental-panel px-5 py-4">
+            <p className="text-sm text-muted-foreground font-medium">Collected</p>
+            <p className="mt-1 truncate text-2xl font-semibold text-foreground">{formatCurrency(totalPaid)}</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/40">
-            <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">Outstanding</p>
-            <p className="mt-1 truncate text-2xl font-bold text-red-600">{formatCurrency(totalOutstanding)}</p>
+          <div className="rental-panel px-5 py-4">
+            <p className="text-sm text-muted-foreground font-medium">Outstanding</p>
+            <p className="mt-1 truncate text-2xl font-semibold text-foreground">{formatCurrency(totalOutstanding)}</p>
           </div>
         </div>
 
+        <p className="text-xs text-muted-foreground">Totals include all payments for {formatMonthYear(year, month)}. Status filters apply to the list below.</p>
+
         {/* Filters */}
-        <form className="grid grid-cols-2 gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm shadow-slate-200/40 sm:flex sm:flex-wrap sm:items-center sm:gap-2">
+        <form action="/payments" key={`${year}-${month}-${statusFilter}`} className="grid grid-cols-2 gap-2 rental-panel p-3 sm:flex sm:flex-wrap sm:items-center sm:gap-2">
           <select
             name="month"
             defaultValue={month}
             aria-label="Month"
-            className="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-auto"
+            className="rental-input sm:w-auto"
           >
-            {monthOptions.map(({ year: y, month: m }) => (
-              <option key={`${y}-${m}`} value={m}>
-                {formatMonthYear(y, m)}
+            {Array.from({ length: 12 }, (_, index) => index + 1).map((value) => (
+              <option key={value} value={value}>
+                {new Date(2000, value - 1, 1).toLocaleString("en-GB", { month: "long" })}
               </option>
             ))}
           </select>
@@ -111,9 +107,9 @@ export default async function PaymentsPage({
             name="year"
             defaultValue={year}
             aria-label="Year"
-            className="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-auto"
+            className="rental-input sm:w-auto"
           >
-            {Array.from(new Set(monthOptions.map(({ year: y }) => y))).map((y) => (
+            {yearOptions.map((y) => (
               <option key={y} value={y}>
                 {y}
               </option>
@@ -124,7 +120,7 @@ export default async function PaymentsPage({
             name="status"
             defaultValue={statusFilter}
             aria-label="Status"
-            className="col-span-2 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:col-span-1 sm:w-auto"
+            className="col-span-2 rental-input sm:col-span-1 sm:w-auto"
           >
             <option value="">All statuses</option>
             <option value="PAID">Paid</option>
@@ -136,18 +132,24 @@ export default async function PaymentsPage({
 
           <button
             type="submit"
-            className="col-span-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:col-span-1 sm:ml-auto"
+            className="rental-button-primary col-span-2 sm:col-span-1 sm:ml-auto"
           >
             Filter
           </button>
         </form>
 
         {/* Table */}
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/40">
-          <div className="divide-y divide-slate-100 md:hidden">
+        <div className="overflow-hidden rental-panel">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-4">
+            <h2 className="text-sm font-semibold text-foreground">
+              {filtered.length} payment{filtered.length === 1 ? "" : "s"}{statusFilter ? ` · ${statusFilter.toLowerCase()}` : ""}
+            </h2>
+            {statusFilter && <Link href={periodHref} className="text-sm font-medium text-primary hover:underline">Clear status filter</Link>}
+          </div>
+          <div className="divide-y divide-border md:hidden">
             {filtered.length === 0 ? (
-              <p className="px-5 py-10 text-center text-sm text-slate-400">
-                No payments for this period.
+              <p className="px-5 py-10 text-center text-sm text-muted-foreground">
+                {statusFilter ? "No payments match this status. Clear the filter to see the full period." : "No payments for this period."}
               </p>
             ) : (
               filtered.map((payment) => (
@@ -156,7 +158,7 @@ export default async function PaymentsPage({
                     <div className="min-w-0">
                       <Link
                         href={`/tenants/${payment.occupancy.tenantId}`}
-                        className="block truncate text-sm font-semibold text-slate-800 hover:text-blue-600"
+                        className="block truncate text-sm font-semibold text-foreground hover:text-primary"
                       >
                         {payment.occupancy.tenant.firstName} {payment.occupancy.tenant.lastName}
                       </Link>
@@ -166,7 +168,7 @@ export default async function PaymentsPage({
                             ? `/properties/${payment.occupancy.room.propertyId}`
                             : `/rooms/${payment.occupancy.roomId}`
                         }
-                        className="mt-1 block text-xs text-slate-500 hover:text-blue-600"
+                        className="mt-1 block text-xs text-muted-foreground hover:text-primary"
                       >
                         {payment.occupancy.room.property.name}
                         {payment.occupancy.room.isDefaultWholePropertyRoom
@@ -178,75 +180,77 @@ export default async function PaymentsPage({
                   </div>
                   <dl className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <dt className="text-xs text-slate-500">Due</dt>
-                      <dd className="mt-1 font-medium text-slate-800">{formatCurrency(payment.amountDue)}</dd>
+                      <dt className="text-xs text-muted-foreground">Due</dt>
+                      <dd className="mt-1 font-medium text-foreground">{formatCurrency(payment.amountDue)}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs text-slate-500">Paid</dt>
-                      <dd className="mt-1 font-medium text-slate-800">
+                      <dt className="text-xs text-muted-foreground">Paid</dt>
+                      <dd className="mt-1 font-medium text-foreground">
                         {payment.amountPaid > 0 ? formatCurrency(payment.amountPaid) : "—"}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-xs text-slate-500">Date Paid</dt>
-                      <dd className="mt-1 text-slate-700">{formatDate(payment.paidAt)}</dd>
+                      <dt className="text-xs text-muted-foreground">Due date</dt>
+                      <dd className="mt-1 text-foreground">{formatDate(payment.dueDate)}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs text-slate-500">Method</dt>
-                      <dd className="mt-1 text-slate-700">{payment.paymentMethod?.replace("_", " ") ?? "—"}</dd>
+                      <dt className="text-xs text-muted-foreground">Date Paid</dt>
+                      <dd className="mt-1 text-foreground">{formatDate(payment.paidAt)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Method</dt>
+                      <dd className="mt-1 text-foreground">{payment.paymentMethod?.replace("_", " ") ?? "—"}</dd>
                     </div>
                   </dl>
                   <Link
-                    href={
-                      payment.occupancy.room.isDefaultWholePropertyRoom
-                        ? `/properties/${payment.occupancy.room.propertyId}`
-                        : `/rooms/${payment.occupancy.roomId}`
-                    }
-                    className="inline-flex items-center rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-blue-600 hover:bg-slate-50"
+                    href={getPaymentAction(payment).href}
+                    className="inline-flex items-center rounded-lg border border-border px-3 py-2 text-xs font-medium text-primary hover:bg-muted/50"
                   >
-                    Record payment
+                    {getPaymentAction(payment).label}
                   </Link>
                 </div>
               ))
             )}
           </div>
 
-          <table className="hidden w-full text-sm md:table">
+          <div className="hidden overflow-x-auto md:block">
+          <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Tenant</th>
-                <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Room</th>
-                <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Due</th>
-                <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Paid</th>
-                <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Date Paid</th>
-                <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Method</th>
-                <th className="text-left text-xs font-medium text-slate-500 px-5 py-3">Status</th>
-                <th className="text-left text-xs font-medium text-slate-500 px-5 py-3"></th>
+              <tr className="border-b border-border bg-muted/50">
+                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Tenant</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Room</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Due</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Paid</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Due date</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Date Paid</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Method</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Status</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-sm text-slate-400">
-                    No payments for this period.
+                  <td colSpan={9} className="px-5 py-10 text-center text-sm text-muted-foreground">
+                    {statusFilter ? "No payments match this status. Clear the filter to see the full period." : "No payments for this period."}
                   </td>
                 </tr>
               ) : (
                 filtered.map((payment) => (
-                  <tr key={payment.id} className="hover:bg-slate-50">
+                  <tr key={payment.id} className="hover:bg-muted/50">
                     <td className="px-5 py-3">
-                      <Link href={`/tenants/${payment.occupancy.tenantId}`} className="font-medium text-slate-800 hover:text-blue-600">
+                      <Link href={`/tenants/${payment.occupancy.tenantId}`} className="font-medium text-foreground hover:text-primary">
                         {payment.occupancy.tenant.firstName} {payment.occupancy.tenant.lastName}
                       </Link>
                     </td>
-                    <td className="px-5 py-3 text-slate-600">
+                    <td className="px-5 py-3 text-muted-foreground">
                       <Link
                         href={
                           payment.occupancy.room.isDefaultWholePropertyRoom
                             ? `/properties/${payment.occupancy.room.propertyId}`
                             : `/rooms/${payment.occupancy.roomId}`
                         }
-                        className="hover:text-blue-600"
+                        className="hover:text-primary"
                       >
                         {payment.occupancy.room.property.name}
                         {payment.occupancy.room.isDefaultWholePropertyRoom
@@ -254,25 +258,22 @@ export default async function PaymentsPage({
                           : ` · ${payment.occupancy.room.name}`}
                       </Link>
                     </td>
-                    <td className="px-5 py-3 text-slate-700">{formatCurrency(payment.amountDue)}</td>
-                    <td className="px-5 py-3 text-slate-700">
+                    <td className="px-5 py-3 text-foreground">{formatCurrency(payment.amountDue)}</td>
+                    <td className="px-5 py-3 text-foreground">
                       {payment.amountPaid > 0 ? formatCurrency(payment.amountPaid) : "—"}
                     </td>
-                    <td className="px-5 py-3 text-slate-500">{formatDate(payment.paidAt)}</td>
-                    <td className="px-5 py-3 text-slate-500">{payment.paymentMethod?.replace("_", " ") ?? "—"}</td>
+                    <td className="whitespace-nowrap px-5 py-3 text-muted-foreground">{formatDate(payment.dueDate)}</td>
+                    <td className="whitespace-nowrap px-5 py-3 text-muted-foreground">{formatDate(payment.paidAt)}</td>
+                    <td className="px-5 py-3 text-muted-foreground">{payment.paymentMethod?.replace("_", " ") ?? "—"}</td>
                     <td className="px-5 py-3">
                       <PaymentStatusBadge status={payment.derivedStatus} size="sm" />
                     </td>
                     <td className="px-5 py-3">
                       <Link
-                        href={
-                          payment.occupancy.room.isDefaultWholePropertyRoom
-                            ? `/properties/${payment.occupancy.room.propertyId}`
-                            : `/rooms/${payment.occupancy.roomId}`
-                        }
-                        className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                        href={getPaymentAction(payment).href}
+                        className="text-xs text-primary hover:text-primary font-medium"
                       >
-                        Record →
+                        {getPaymentAction(payment).label}
                       </Link>
                     </td>
                   </tr>
@@ -280,6 +281,7 @@ export default async function PaymentsPage({
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>

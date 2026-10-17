@@ -31,14 +31,14 @@ export default async function EditRoomPage({
             <Link
               href={`/properties/${room.propertyId}`}
               data-testid="edit-room-parent-property-link"
-              className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+              className="text-sm font-medium text-muted-foreground border border-border px-3 py-2 rounded-lg hover:bg-background transition-colors"
             >
               Property
             </Link>
             <Link
               href={`/rooms/${id}`}
               data-testid="edit-room-parent-room-link"
-              className="text-sm font-medium text-slate-600 border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+              className="text-sm font-medium text-muted-foreground border border-border px-3 py-2 rounded-lg hover:bg-background transition-colors"
             >
               Room
             </Link>

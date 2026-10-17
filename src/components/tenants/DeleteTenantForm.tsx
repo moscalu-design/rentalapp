@@ -12,7 +12,7 @@ export function DeleteTenantForm({ tenantId }: DeleteTenantFormProps) {
       <button
         type="submit"
         data-testid="delete-tenant-button"
-        className="text-sm font-medium text-red-600 border border-red-200 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"
+        className="text-sm font-medium text-destructive border border-red-200 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"
         onClick={(event) => {
           if (!confirm("Delete this tenant? This action cannot be undone.")) {
             event.preventDefault();

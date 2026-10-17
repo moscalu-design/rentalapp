@@ -10,13 +10,13 @@ interface TopBarProps {
 
 export function TopBar({ title, description, actions, backHref, backLabel }: TopBarProps) {
   return (
-    <div className="sticky top-14 z-20 shrink-0 border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-6 sm:py-4 lg:top-0">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className="shrink-0 px-4 pt-6 pb-2 sm:px-6 lg:px-8 lg:pt-8">
+      <div className="mx-auto flex w-full max-w-[1416px] flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
           {backHref && (
             <Link
               href={backHref}
-              className="mb-1 inline-flex items-center gap-1 rounded-md text-xs font-medium text-slate-500 transition-colors hover:text-blue-600"
+              className="mb-1 inline-flex items-center gap-1 rounded-md text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -24,9 +24,9 @@ export function TopBar({ title, description, actions, backHref, backLabel }: Top
               {backLabel ?? "Back"}
             </Link>
           )}
-          <h1 className="truncate text-lg font-semibold leading-tight text-slate-950 sm:text-xl">{title}</h1>
+          <h1 className="break-words text-2xl font-semibold leading-tight tracking-tight text-foreground lg:text-[30px]">{title}</h1>
           {description && (
-            <p className="mt-0.5 truncate text-xs text-slate-500 sm:text-sm">{description}</p>
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">{description}</p>
           )}
         </div>
         {actions && (
