@@ -17,7 +17,7 @@ async function request<T>(path: string, method = "GET", body?: unknown): Promise
 }
 function money(amount: number, currency = "EUR") { return new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(amount / (10 ** new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions().maximumFractionDigits!)); }
 
-export function VerityWorkspace({ targets, configured }: { targets: RentalTarget[]; configured: boolean }) {
+export function VerityWorkspace({ targets, configured, accountEmail }: { targets: RentalTarget[]; configured: boolean; accountEmail: string }) {
   const router = useRouter();
   const [truncated, setTruncated] = useState(false);
   const [connection, setConnection] = useState<Connection | null>(null);
@@ -59,7 +59,7 @@ export function VerityWorkspace({ targets, configured }: { targets: RentalTarget
     {message && <p role="status" className="rounded-lg bg-success/10 p-4 text-sm text-success">{message}</p>}
     {!configured && <div className="rental-panel p-5"><h2 className="font-semibold">Server setup required</h2><p className="mt-2 text-sm text-muted-foreground">Set the Verity server address and apply both apps’ connector migrations before linking an account. No bank data has been imported.</p></div>}
     <section className="rental-panel p-5 sm:p-6" aria-labelledby={`${uid}-connection`}>
-      <div className="flex flex-wrap items-start justify-between gap-4"><div><h2 id={`${uid}-connection`} className="text-lg font-semibold">{connected ? "Connected to Verity" : "Connect your Verity account"}</h2><p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">Choose the accounts to share in Verity. Imported transactions stay in review until you confirm where they belong.</p></div>{connected && <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">Connected</span>}</div>
+      <div className="flex flex-wrap items-start justify-between gap-4"><div><h2 id={`${uid}-connection`} className="text-lg font-semibold">{connected ? "Connected to Verity" : "Connect your Verity account"}</h2><p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">Signed in to Rental App as <strong className="break-all font-medium text-foreground">{accountEmail}</strong>. Sign in to Verity with this same email address before creating a connection key. Imported transactions stay in review until you confirm where they belong.</p></div>{connected && <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">Connected</span>}</div>
       {loading ? <p role="status" className="mt-5 text-sm text-muted-foreground">Loading connection…</p> : connected ? <>
         <p className="mt-4 text-sm">{connection.accounts.map((account) => account.name).join(" · ")}</p><p className="mt-1 text-xs text-muted-foreground">{connection.lastSyncedAt ? `Last import: ${new Date(connection.lastSyncedAt).toLocaleString("en-GB")}` : "No transactions imported yet"}</p>
         {connection.lastError && <p className="mt-2 text-sm text-destructive">{connection.lastError}</p>}

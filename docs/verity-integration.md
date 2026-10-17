@@ -1,10 +1,10 @@
 # Rental App and Verity connector
 
-Status on 16 October 2026: implemented and tested locally with synthetic data. The connector has not been migrated or deployed to production. Local checks do not establish live bank access, provider eligibility, or reconciliation of real accounts. Follow the [setup guide](verity-connector-setup.md) to configure both applications.
+The connector is deployed. Authenticated account linking and real imports remain separate from local synthetic validation. Follow the [setup guide](verity-connector-setup.md).
 
 ## Responsibility and financial meaning
 
-Verity supplies canonical transaction evidence for explicitly selected accounts. Rental App owns properties, tenancies, rent obligations, bills and mortgage terms. Users sign in to each application independently and authorize the connection with a scoped Verity token; matching email addresses do not link identities.
+Verity supplies canonical transaction evidence for explicitly selected accounts. Rental App owns properties, tenancies, rent obligations, bills and mortgage terms. Users sign in to each application independently and authorize the connection with a scoped Verity token; the current account email must match in both applications (case-insensitive, with surrounding whitespace ignored). Email matching is an additional check: it does not replace tokens, stable owner IDs or ownership checks.
 
 Imports stage transactions for review. They do not record rent or automatically select a property. A user confirms each allocation, including its amount and rental target. Confirmed allocations return dedicated rental context to Verity; they never create another bank transaction or overwrite transaction amounts, categories, notes, tags or provider data.
 
@@ -19,7 +19,7 @@ One transaction may be split across targets, and several transactions may cover 
 
 ## Source and ownership contract
 
-Rental binds one authenticated local owner to one Verity owner. That binding survives disconnect and cannot be reassigned to another Verity owner; the same Verity owner cannot be attached to a second Rental account in this database. Each confirmation verifies ownership of the imported transaction and the rent, expense or mortgage target, including its property. Legacy records without an owner are not adopted. Rental accounts with the `VIEWER` role cannot mutate the connector.
+Rental binds one authenticated local owner to one Verity owner. Matching emails are checked before linking, before transaction pages are fetched, again before imports are saved, before confirming allocations, and before sending rental context. A changed email blocks further imports and confirmations; disconnect and safe undo remain available. That binding survives disconnect and cannot be reassigned to another Verity owner; the same Verity owner cannot be attached to a second Rental account in this database. Each confirmation verifies ownership of the imported transaction and the rent, expense or mortgage target, including its property. Legacy records without an owner are not adopted. Rental accounts with the `VIEWER` role cannot mutate the connector.
 
 The versioned Verity API exports canonical ledger transactions scoped to the token owner and selected accounts:
 

@@ -58,7 +58,7 @@ beforeEach(async () => {
     await db.occupancy.create({ data: { id: `occupancy-${userId}`, userId, roomId: `room-${userId}`, tenantId: `tenant-${userId}`, leaseStart: new Date("2026-01-01"), monthlyRent: 1000, depositRequired: 1000 } });
     await db.payment.create({ data: { id: `payment-${userId}`, userId, occupancyId: `occupancy-${userId}`, periodYear: 2026, periodMonth: 10, amountDue: 1000, dueDate: new Date("2026-10-05"), notes: "Keep original notes", reference: "Manual reference" } });
   }
-  remote = { version: 1, ownerId: "verity-owner", connectionId: "remote-connection-1", accounts: [{ id: "account-1", name: "Business account", currency: "EUR" }] };
+  remote = { version: 1, ownerId: "verity-owner", ownerEmail: "owner-1@test.local", connectionId: "remote-connection-1", accounts: [{ id: "account-1", name: "Business account", currency: "EUR" }] };
   transactions = [source()];
   service = createVerityService(db, makeClient);
   await service.connect("owner-1", "test-verity-token");
@@ -73,6 +73,41 @@ async function rent(amountMinor: number, mode: "add_receipt" | "link_existing" =
 async function paid() { return (await db.payment.findUniqueOrThrow({ where: { id: "payment-owner-1" } })).amountPaid; }
 
 describe("Verity persistence against a throwaway SQLite database", () => {
+  it("rejects a different email before storing a new connection", async () => {
+    remote = { ...remote, ownerId: "another-owner", ownerEmail: "wrong@test.local" };
+    await expect(service.connect("owner-2", "wrong-email-token")).rejects.toMatchObject({ status: 403 });
+    expect(await db.verityConnection.findUnique({ where: { userId: "owner-2" } })).toBeNull();
+  });
+  it("accepts matching emails regardless of case or outer whitespace", async () => {
+    remote = { ...remote, ownerId: "another-owner", ownerEmail: " OWNER-2@TEST.LOCAL " };
+    await expect(service.connect("owner-2", "matching-email-token")).resolves.toHaveProperty("connection");
+  });
+  it("rejects same-token reconnect and allocations after the email changes", async () => {
+    remote = { ...remote, ownerEmail: "changed@test.local" };
+    await expect(service.connect("owner-1", "test-verity-token")).rejects.toMatchObject({ status: 403 });
+    await expect(rent(10000)).rejects.toMatchObject({ status: 403 });
+    expect(await paid()).toBe(0);
+    expect(await db.verityAllocation.count()).toBe(0);
+    await expect(service.disconnect("owner-1")).resolves.toHaveProperty("connection");
+  });
+  it("rejects a changed email during sync without importing anything", async () => {
+    remote = { ...remote, ownerEmail: "changed@test.local" };
+    transactions = [source("new-source")];
+    await expect(service.sync("owner-1")).rejects.toMatchObject({ status: 403 });
+    expect(await db.verityTransaction.count()).toBe(1);
+    expect(await db.verityTransaction.findFirst({ where: { externalId: "new-source" } })).toBeNull();
+  });
+  it("checks the current Rental email for allocations and pending context", async () => {
+    putContext.mockRejectedValue(new Error("offline"));
+    await rent(10000);
+    putContext.mockClear(); putContext.mockResolvedValue(undefined);
+    await db.user.update({ where: { id: "owner-1" }, data: { email: "new@test.local" } });
+    await expect(rent(10000, "add_receipt", "second")).rejects.toMatchObject({ status: 403 });
+    expect(await service.retryContext("owner-1")).toMatchObject({ pending: true });
+    expect(putContext).not.toHaveBeenCalled();
+    expect(await paid()).toBe(100);
+  });
+
   it("encrypts credentials and returns only owner-scoped safe status", async () => {
     const stored = await db.verityConnection.findUniqueOrThrow({ where: { userId: "owner-1" } });
     expect(stored.encryptedToken).not.toContain("test-verity-token");

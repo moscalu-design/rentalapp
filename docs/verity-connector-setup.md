@@ -36,7 +36,7 @@ These instructions do not apply migrations to any live environment. Keep local f
 4. Select **Import transactions**. The complete selected-account snapshot must fit within 10,000 transactions. Non-EUR transactions are visible but cannot be allocated.
 5. Review each bank line and select **Match**. Choose the target and amount; a connection/import alone does not post money.
 
-Both accounts must belong to the intended person. Rental binds the returned Verity owner ID, not an email address. Changing the Verity owner of an existing Rental connection is deliberately blocked.
+Both accounts must belong to the intended person and use the same email address. The Rental connection page displays the signed-in email. Matching ignores case and surrounding whitespace, but does not merge aliases. Rental also binds the returned stable Verity owner ID; the email check never replaces token authorization. Changing the Verity owner of an existing Rental connection is deliberately blocked.
 
 ## Confirm the three supported payment types
 

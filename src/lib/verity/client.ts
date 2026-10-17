@@ -3,6 +3,8 @@ import { VerityConnectionSchema, VerityContextSchema, VerityPageSchema, type Ver
 const MAX_PAGES = 100;
 const MAX_RESPONSE_BYTES = 2_000_000;
 
+export class VerityIdentityError extends Error {}
+
 export class VerityHttpError extends Error {
   constructor(readonly status: number, message: string) {
     super(message);
@@ -64,9 +66,12 @@ export function createVerityClient(token: string) {
   }
   return {
     getConnection,
-    async getSnapshot(expectedOwnerId?: string) {
+    async getSnapshot(expectedOwnerId?: string, expectedEmail?: string) {
       const connection = await getConnection();
       if (expectedOwnerId && connection.ownerId !== expectedOwnerId) throw new Error("This connection belongs to a different Verity owner.");
+      if (!expectedEmail || connection.ownerEmail.toLowerCase() !== expectedEmail.trim().toLowerCase()) {
+        throw new VerityIdentityError("Use the same email address in Rental App and Verity. Nothing was imported.");
+      }
       const accounts = new Set(connection.accounts.map((account) => account.id));
       if (accounts.size !== connection.accounts.length) throw new Error("Verity returned duplicate account permissions.");
       const ids = new Set<string>(); const sourceKeys = new Set<string>(); const cursors = new Set<string>();

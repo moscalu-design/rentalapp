@@ -7,7 +7,7 @@ const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
   return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
 }, "Invalid posting date");
 export const VerityAccountSchema = z.object({ id: identifier, name: z.string().max(500), currency });
-export const VerityConnectionSchema = z.object({ version: z.literal(1), ownerId: identifier, connectionId: identifier, accounts: z.array(VerityAccountSchema).min(1).max(200) });
+export const VerityConnectionSchema = z.object({ version: z.literal(1), ownerId: identifier, ownerEmail: z.string().trim().email().max(320), connectionId: identifier, accounts: z.array(VerityAccountSchema).min(1).max(200) });
 export const VerityTransactionSchema = z.object({
   id: identifier, accountId: identifier, accountName: z.string().max(500), postedDate: date,
   amountMinor: z.number().int().safe(), currency,

@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { PrismaClient, Prisma } from "@/generated/prisma/client";
 import { computePaymentStatus } from "@/lib/utils";
-import { createVerityClient } from "./client";
+import { createVerityClient, VerityIdentityError } from "./client";
 import { encryptToken, decryptToken } from "./crypto";
 import type { VerityContext, VerityTransaction as SourceTransaction } from "./schemas";
 
@@ -78,6 +78,13 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
     }
   }
 
+  async function requireMatchingEmail(userId: string, remote: { ownerEmail: string }, database: Database | Transaction = db) {
+    const user = await database.user.findUnique({ where: { id: userId }, select: { email: true } });
+    if (!user?.email?.trim() || !remote.ownerEmail?.trim() || user.email.trim().toLowerCase() !== remote.ownerEmail.trim().toLowerCase()) {
+      throw new IntegrationError("Use the same email address in Rental App and Verity. Sign in to the matching account before connecting or importing.", 403);
+    }
+  }
+
   async function getConnection(userId: string) {
     const connection = await db.verityConnection.findUnique({ where: { userId } });
     if (!connection) return { connection: null };
@@ -102,16 +109,21 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
     }
     if (existing?.revokePending) throw new IntegrationError("Finish revoking the previous connection before reconnecting. Use Retry context sync.", 409);
     if (existing?.status === "CONNECTED") {
-      if (existing.encryptedToken && decryptToken(existing.encryptedToken, userId) === token && existing.remoteConnectionId === remote.connectionId) return getConnection(userId);
+      if (existing.encryptedToken && decryptToken(existing.encryptedToken, userId) === token && existing.remoteConnectionId === remote.connectionId) {
+        await requireMatchingEmail(userId, remote);
+        return getConnection(userId);
+      }
       throw new IntegrationError("Disconnect the existing Verity token before connecting a replacement. Imported records will be preserved.", 409);
     }
     const other = await db.verityConnection.findUnique({ where: { remoteOwnerId: remote.ownerId } });
     if (other && other.userId !== userId) throw new IntegrationError("This Verity owner is already connected to another Rental account.", 409);
+    await requireMatchingEmail(userId, remote);
     const values = { encryptedToken, remoteConnectionId: remote.connectionId, accountsJson: json(remote.accounts), status: "CONNECTED", lastError: null };
     if (existing) {
       await locked(userId, async (tx) => {
         const current = await tx.verityConnection.findUniqueOrThrow({ where: { userId } });
         if (current.remoteOwnerId !== remote.ownerId || current.revokePending || current.status === "CONNECTED") throw new IntegrationError("The connection changed. Refresh before reconnecting.", 409);
+        await requireMatchingEmail(userId, remote, tx);
         await tx.verityConnection.update({ where: { userId }, data: { ...values, lastSyncedAt: null } });
         await tx.verityAllocation.updateMany({ where: { userId, status: "CONFIRMED" }, data: { contextStatus: "PENDING", contextOperation: "UPSERT", contextError: null, contextVersion: { increment: 1 } } });
       }, true);
@@ -125,15 +137,18 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
   async function sync(userId: string) {
     const connection = await db.verityConnection.findUnique({ where: { userId } });
     if (!connection?.encryptedToken || connection.status !== "CONNECTED") throw new IntegrationError("Connect Verity before syncing.", 409);
+    const user = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } });
     let snapshot;
-    try { snapshot = await makeClient(decryptToken(connection.encryptedToken, userId)).getSnapshot(connection.remoteOwnerId); }
-    catch {
-      await db.verityConnection.updateMany({ where: { userId, encryptedToken: connection.encryptedToken }, data: { lastError: "Sync failed. Nothing was imported. Check Verity access and try again." } });
-      throw new IntegrationError("Sync failed. Nothing was imported. Check Verity access and try again.", 502);
+    try { snapshot = await makeClient(decryptToken(connection.encryptedToken, userId)).getSnapshot(connection.remoteOwnerId, user.email); }
+    catch (error) {
+      const message = error instanceof VerityIdentityError ? error.message : "Sync failed. Nothing was imported. Check Verity access and try again.";
+      await db.verityConnection.updateMany({ where: { userId, encryptedToken: connection.encryptedToken }, data: { lastError: message } });
+      throw new IntegrationError(message, error instanceof VerityIdentityError ? 403 : 502);
     }
     const summary = await locked(userId, async (tx) => {
       const current = await tx.verityConnection.findUniqueOrThrow({ where: { userId } });
       if (current.revision !== connection.revision + 1 || current.encryptedToken !== connection.encryptedToken || snapshot.connection.ownerId !== current.remoteOwnerId) throw new IntegrationError("The connection changed during sync. Nothing was imported; retry.", 409);
+      await requireMatchingEmail(userId, snapshot.connection, tx);
       const existing = await tx.verityTransaction.findMany({ where: { userId, connectionId: current.id }, include: { allocations: { where: { status: "CONFIRMED" }, select: { id: true } } } });
       const byExternal = new Map(existing.map((row) => [row.externalId, row]));
       const bySource = new Map(existing.filter((row) => row.sourceKey).map((row) => [row.sourceKey, row.externalId]));
@@ -202,8 +217,17 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
     const { idempotencyKey: providedKey, ...request } = input;
     const requestHash = sha(request);
     const idempotencyKey = providedKey ?? requestHash;
+    const verified = await db.verityConnection.findUnique({ where: { userId } });
+    if (!verified?.encryptedToken || verified.status !== "CONNECTED") throw new IntegrationError("Connect Verity before continuing.", 409);
+    let remote;
+    try { remote = await makeClient(decryptToken(verified.encryptedToken, userId)).getConnection(); }
+    catch { throw new IntegrationError("Verity identity could not be checked. Retry before recording money.", 502); }
+    if (remote.ownerId !== verified.remoteOwnerId || remote.connectionId !== verified.remoteConnectionId) throw new IntegrationError("The Verity connection changed. Reconnect before recording money.", 409);
+    await requireMatchingEmail(userId, remote);
     const allocation = await locked(userId, async (tx) => {
       const connection = await tx.verityConnection.findUniqueOrThrow({ where: { userId } });
+      if (connection.encryptedToken !== verified.encryptedToken) throw new IntegrationError("The connection changed. Refresh before retrying.", 409);
+      await requireMatchingEmail(userId, remote, tx);
       if (!connection.lastSyncedAt || !connection.encryptedToken) throw new IntegrationError("Sync this connection before confirming a bank allocation.", 409);
       try { decryptToken(connection.encryptedToken, userId); } catch { throw new IntegrationError("The saved connection cannot be unlocked. Check server credentials before recording money.", 409); }
       const repeated = await tx.verityAllocation.findUnique({ where: { userId_idempotencyKey: { userId, idempotencyKey } } });
@@ -350,7 +374,12 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
         if (renewed.count !== 1) break;
         try {
           if (row.contextOperation === "DELETE") await client.deleteContext(row.id);
-          else await client.putContext(JSON.parse(row.contextPayloadJson));
+          else {
+            const remote = await client.getConnection();
+            if (remote.ownerId !== connection.remoteOwnerId || remote.connectionId !== connection.remoteConnectionId) throw new IntegrationError("The Verity connection changed.", 409);
+            await requireMatchingEmail(userId, remote);
+            await client.putContext(JSON.parse(row.contextPayloadJson));
+          }
           const changed = await db.verityAllocation.updateMany({ where: { id: row.id, userId, contextVersion: row.contextVersion }, data: { contextStatus: "SYNCED", contextError: null, contextSyncedAt: new Date(), contextAttempts: { increment: 1 } } });
           synced += changed.count;
         } catch {
