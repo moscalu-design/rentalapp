@@ -7,7 +7,7 @@ const initialState: LoginState = {};
 
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
-  const [values, setValues] = useState({ email: "", password: "", totpCode: "" });
+  const [values, setValues] = useState({ email: "", password: "" });
 
   return (
     <form action={formAction} aria-busy={pending} className="space-y-5">
@@ -42,23 +42,6 @@ export function LoginForm() {
           value={values.password}
           onChange={(event) => setValues({ ...values, password: event.target.value })}
         />
-      </div>
-      <div>
-        <label htmlFor="totpCode" className="mb-1.5 block text-sm font-medium text-foreground">Two-factor code</label>
-        <input
-          id="totpCode"
-          name="totpCode"
-          type="text"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          aria-describedby="totp-hint"
-          className="rental-input tabular-nums"
-          value={values.totpCode}
-          onChange={(event) => setValues({ ...values, totpCode: event.target.value })}
-        />
-        <p id="totp-hint" className="mt-2 text-xs leading-relaxed text-muted-foreground">
-          Enter the code from your authenticator if two-factor authentication is enabled.
-        </p>
       </div>
       <button type="submit" disabled={pending} className="rental-button-primary w-full">
         {pending ? "Signing in…" : "Sign in"}

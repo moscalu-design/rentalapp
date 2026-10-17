@@ -26,11 +26,10 @@ describe("loginAction", () => {
     mocks.signIn.mockReset();
   });
 
-  function credentials(totpCode = "") {
+  function credentials() {
     const formData = new FormData();
     formData.set("email", "owner@example.com");
     formData.set("password", "a-private-password");
-    formData.set("totpCode", totpCode);
     return formData;
   }
 
@@ -38,7 +37,7 @@ describe("loginAction", () => {
     mocks.signIn.mockRejectedValue(new CredentialsSignin("private provider detail"));
 
     await expect(loginAction({}, credentials())).resolves.toEqual({
-      error: "Unable to sign in. Check your email, password and two-factor code if enabled.",
+      error: "Unable to sign in. Check your email and password.",
     });
   });
 
@@ -50,26 +49,16 @@ describe("loginAction", () => {
     });
   });
 
-  it("preserves successful redirect signals and the two-factor code", async () => {
+  it("preserves successful redirect signals", async () => {
     const redirect = new Error("NEXT_REDIRECT:/dashboard");
     mocks.signIn.mockRejectedValue(redirect);
 
-    await expect(loginAction({}, credentials("012345"))).rejects.toBe(redirect);
+    await expect(loginAction({}, credentials())).rejects.toBe(redirect);
     expect(mocks.signIn).toHaveBeenCalledWith("credentials", {
       email: "owner@example.com",
       password: "a-private-password",
-      totpCode: "012345",
       redirectTo: "/dashboard",
     });
-  });
-
-  it("keeps two-factor authentication optional when no code is supplied", async () => {
-    mocks.signIn.mockResolvedValue(undefined);
-
-    await expect(loginAction({}, credentials())).resolves.toEqual({});
-    expect(mocks.signIn).toHaveBeenCalledWith("credentials", expect.objectContaining({
-      totpCode: undefined,
-    }));
   });
 
   it("does not hide unexpected programming errors", async () => {

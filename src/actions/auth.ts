@@ -23,14 +23,13 @@ export async function loginAction(
     await signIn("credentials", {
       email: formData.get("email"),
       password: formData.get("password"),
-      totpCode: formData.get("totpCode") || undefined,
       redirectTo: "/dashboard",
     });
   } catch (error) {
     if (error instanceof AuthError) {
       return {
         error: error.type === "CredentialsSignin"
-          ? "Unable to sign in. Check your email, password and two-factor code if enabled."
+          ? "Unable to sign in. Check your email and password."
           : "Sign-in is temporarily unavailable. Please try again.",
       };
     }

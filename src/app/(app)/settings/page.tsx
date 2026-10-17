@@ -2,7 +2,6 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { TopBar } from "@/components/layout/TopBar";
 import { SettingsExportButton } from "@/components/settings/SettingsExportButton";
-import { TwoFactorSection } from "@/components/settings/TwoFactorSection";
 import prisma from "@/lib/prisma";
 
 const ROADMAP = [
@@ -18,7 +17,7 @@ export default async function SettingsPage() {
   const user = session?.user?.id
     ? await prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { phone: true, role: true, twoFactorEnabled: true },
+        select: { phone: true, role: true },
       })
     : null;
 
@@ -49,8 +48,6 @@ export default async function SettingsPage() {
             Your rental data is private to your account. Other signed-in users cannot access it.
           </p>
         </div>
-
-        <TwoFactorSection enabled={Boolean(user?.twoFactorEnabled)} />
 
         <div className="rental-panel p-5 sm:p-6">
           <h2 className="text-sm font-semibold">Verity connection</h2>
