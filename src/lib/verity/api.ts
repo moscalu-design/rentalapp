@@ -54,7 +54,8 @@ export async function verityApi(request: Request, mutation: boolean, work: (user
       assertSameOrigin(request);
       if ((session.user as { role?: string }).role === "VIEWER") throw new IntegrationError("Your account has read-only access.", 403);
     }
-    return Response.json(await work(session.user.id), { headers });
+    const result = await work(session.user.id);
+    return result instanceof Response ? result : Response.json(result, { headers });
   } catch (error) {
     if (error instanceof IntegrationError) return Response.json({ error: error.message }, { status: error.status, headers });
     if (error instanceof z.ZodError) return Response.json({ error: "The confirmation contains invalid fields. Refresh and check the amount, target and action." }, { status: 400, headers });

@@ -29,6 +29,16 @@ describe("Verity credential boundary", () => {
 });
 
 describe("Verity complete snapshot validation", () => {
+  it("reads a full 500-record page and reports actual progress", async () => {
+    const rows = Array.from({ length: 500 }, (_, i) => ({ ...transaction, id: `bulk-${i}`, sourceKey: `bank:bulk-${i}` }));
+    const fetcher = setup({ version: 1, ownerId: "owner-a", transactions: rows, nextCursor: null });
+    const report = vi.fn();
+    const result = await createVerityClient("token").getSnapshot("owner-a", "owner@example.com", report);
+    expect(result.transactions).toHaveLength(500);
+    expect(fetcher.mock.calls[1][0]).toContain("limit=500");
+    expect(report).toHaveBeenLastCalledWith({ stage: "reading_transactions", processed: 500, accounts: 1, page: 1 });
+  });
+
   it("rejects a server response that omits the owner email", async () => {
     const fetcher = setup();
     fetcher.mockReset().mockResolvedValueOnce(Response.json({ ...connection, ownerEmail: undefined }));

@@ -1,7 +1,9 @@
 import { VerityConnectionSchema, VerityContextSchema, VerityPageSchema, type VerityContext, type VerityTransaction } from "./schemas";
 
-const MAX_PAGES = 100;
-const MAX_RESPONSE_BYTES = 2_000_000;
+import type { ReportProgress } from "./progress";
+
+const MAX_PAGES = 20;
+const MAX_RESPONSE_BYTES = 6_000_000;
 
 export class VerityIdentityError extends Error {}
 
@@ -66,19 +68,20 @@ export function createVerityClient(token: string) {
   }
   return {
     getConnection,
-    async getSnapshot(expectedOwnerId?: string, expectedEmail?: string) {
+    async getSnapshot(expectedOwnerId?: string, expectedEmail?: string, report: ReportProgress = () => {}) {
       const connection = await getConnection();
       if (expectedOwnerId && connection.ownerId !== expectedOwnerId) throw new Error("This connection belongs to a different Verity owner.");
       if (!expectedEmail || connection.ownerEmail.toLowerCase() !== expectedEmail.trim().toLowerCase()) {
         throw new VerityIdentityError("Use the same email address in Rental App and Verity. Nothing was imported.");
       }
+      report({ stage: "reading_transactions", processed: 0, accounts: connection.accounts.length, page: 0 });
       const accounts = new Set(connection.accounts.map((account) => account.id));
       if (accounts.size !== connection.accounts.length) throw new Error("Verity returned duplicate account permissions.");
       const ids = new Set<string>(); const sourceKeys = new Set<string>(); const cursors = new Set<string>();
       const transactions: VerityTransaction[] = [];
       let cursor: string | null = null;
       for (let index = 0; index < MAX_PAGES; index++) {
-        const params = new URLSearchParams({ limit: "100" }); if (cursor) params.set("cursor", cursor);
+        const params = new URLSearchParams({ limit: "500" }); if (cursor) params.set("cursor", cursor);
         const page = VerityPageSchema.parse(await request(`transactions?${params}`));
         if (page.ownerId !== connection.ownerId) throw new Error("Verity owner changed during import. Nothing was imported.");
         for (const transaction of page.transactions) {
@@ -87,6 +90,8 @@ export function createVerityClient(token: string) {
           ids.add(transaction.id); if (transaction.sourceKey) sourceKeys.add(transaction.sourceKey);
           transactions.push(transaction);
         }
+        if (transactions.length > 10_000) throw new Error("This connection exceeds 10,000 transactions. Narrow the account selection before importing.");
+        report({ stage: "reading_transactions", processed: transactions.length, accounts: accounts.size, page: index + 1 });
         if (page.nextCursor === null) return { connection, transactions };
         if (cursors.has(page.nextCursor)) throw new Error("Verity returned a repeated page. Nothing was imported.");
         cursors.add(page.nextCursor); cursor = page.nextCursor;

@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
+import { ConnectionProgress } from "./ConnectionProgress";
+import { runVerityOperation } from "@/lib/verity/progress-client";
+import type { VerityProgress } from "@/lib/verity/progress";
+
 export type RentalTarget = { id: string; kind: "rent" | "expense" | "mortgage"; label: string; detail: string; href: string };
 type Allocation = { id: string; kind: RentalTarget["kind"]; targetId: string; amountMinor: number; mode: string; status: string; contextStatus: string };
 type Transaction = { id: string; externalId: string; amountMinor: number; currency: string; postedDate: string; description: string; accountName: string; counterpartyIban?: string | null; status: string; allocations: Allocation[] };
@@ -24,6 +28,9 @@ export function VerityWorkspace({ targets, configured, accountEmail }: { targets
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [operation, setOperation] = useState<{ kind: "connection" | "sync"; startedAt: number; progress: VerityProgress } | null>(null);
+  const [visibleLimit, setVisibleLimit] = useState(100);
+  const running = useRef(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [token, setToken] = useState("");
@@ -48,13 +55,34 @@ export function VerityWorkspace({ targets, configured, accountEmail }: { targets
     setBusy(true); setError(""); setMessage("");
     try { await action(); await refresh(); router.refresh(); setMessage(success); } catch (e) { setError(e instanceof Error ? e.message : "Something went wrong. Please try again."); } finally { setBusy(false); }
   }
+  async function runOperation(kind: "connection" | "sync") {
+    if (running.current) return;
+    running.current = true;
+    setBusy(true); setError(""); setMessage("");
+    const startedAt = Date.now();
+    setOperation({ kind, startedAt, progress: { stage: kind === "connection" ? "checking_key" : "checking_email" } });
+    try {
+      const result = await runVerityOperation(kind, (progress) => setOperation({ kind, startedAt, progress }), kind === "connection" ? { token } : undefined);
+      if (kind === "connection") {
+        setToken(""); setConnection((result as { connection: Connection }).connection);
+        setMessage("Connection ready. Your email and selected accounts are confirmed. Import transactions when you’re ready.");
+      } else {
+        const summary = result as { imported: number; updated: number; total: number; needsReview: number };
+        setMessage(`Import complete: ${summary.total.toLocaleString()} transactions checked, ${summary.imported.toLocaleString()} added, ${summary.updated.toLocaleString()} updated${summary.needsReview ? `, ${summary.needsReview.toLocaleString()} need review` : ""}. Review and match payments below; no rent has been recorded automatically.`);
+      }
+      setOperation(null);
+      try { await refresh(); } catch { setError("The operation completed, but this view could not refresh. Reload the page to see the saved result."); }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "The operation could not finish. Refresh to check the saved state.");
+    } finally { setOperation(null); setBusy(false); running.current = false; }
+  }
   const connected = connection?.status === "CONNECTED";
   const pending = transactions.filter((tx) => tx.status === "NEEDS_REVIEW").length;
   const visible = transactions.filter((tx) => {
     const allocated = tx.allocations.filter((a) => a.status === "CONFIRMED").reduce((sum, a) => sum + a.amountMinor, 0);
     return (filter !== "review" || tx.status === "NEEDS_REVIEW" || (tx.status === "READY" && allocated < Math.abs(tx.amountMinor))) && `${tx.description} ${tx.accountName} ${tx.postedDate}`.toLowerCase().includes(query.toLowerCase());
   });
-  return <div className="rental-page" aria-busy={loading || busy}>
+  return <div className="rental-page" aria-busy={loading}>
     {error && <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">{error}</div>}
     {message && <p role="status" className="rounded-lg bg-success/10 p-4 text-sm text-success">{message}</p>}
     {!configured && <div className="rental-panel p-5"><h2 className="font-semibold">Server setup required</h2><p className="mt-2 text-sm text-muted-foreground">Set the Verity server address and apply both apps’ connector migrations before linking an account. No bank data has been imported.</p></div>}
@@ -63,11 +91,12 @@ export function VerityWorkspace({ targets, configured, accountEmail }: { targets
       {loading ? <p role="status" className="mt-5 text-sm text-muted-foreground">Loading connection…</p> : connected ? <>
         <p className="mt-4 text-sm">{connection.accounts.map((account) => account.name).join(" · ")}</p><p className="mt-1 text-xs text-muted-foreground">{connection.lastSyncedAt ? `Last import: ${new Date(connection.lastSyncedAt).toLocaleString("en-GB")}` : "No transactions imported yet"}</p>
         {connection.lastError && <p className="mt-2 text-sm text-destructive">{connection.lastError}</p>}
-        <div className="mt-5 flex flex-wrap gap-3"><button disabled={busy} className="rental-button-primary" onClick={() => void act(() => request("/sync", "POST"), "Transactions refreshed. Review the matches below.")}>{busy ? "Working…" : "Import transactions"}</button><button disabled={busy} className="rental-button-secondary" onClick={() => void act(() => request("/retry-context", "POST"), "Pending updates retried.")}>Retry pending updates</button><button disabled={busy} className="text-sm text-muted-foreground underline" onClick={() => setConfirmDisconnect(true)}>Disconnect</button></div>
+        <div className="mt-5 flex flex-wrap gap-3"><button disabled={busy} className="rental-button-primary" onClick={() => void runOperation("sync")}>{operation?.kind === "sync" ? "Importing transactions…" : "Import transactions"}</button><button disabled={busy} className="rental-button-secondary" onClick={() => void act(() => request("/retry-context", "POST"), "Pending updates retried.")}>Retry pending updates</button><button disabled={busy} className="text-sm text-muted-foreground underline" onClick={() => setConfirmDisconnect(true)}>Disconnect</button></div>
         {confirmDisconnect && <div className="mt-4 border-t border-border pt-4"><p className="text-sm">Stop imports and revoke Verity access? Existing matches and your rental records will be kept.</p><div className="mt-3 flex gap-3"><button disabled={busy} className="rental-button-secondary" onClick={() => void act(async () => { await request("/connection", "DELETE"); setConfirmDisconnect(false); }, "Disconnected. Existing records are kept.")}>Confirm disconnect</button><button className="text-sm text-muted-foreground" onClick={() => setConfirmDisconnect(false)}>Cancel</button></div></div>}
-      </> : <form className="mt-5 max-w-xl space-y-3" onSubmit={(event) => { event.preventDefault(); void act(async () => { await request("/connection", "POST", { token }); setToken(""); }, "Connected. Import transactions when you’re ready."); }}>
-        <label htmlFor={`${uid}-token`} className="block text-sm font-medium">Connection token from Verity</label><input id={`${uid}-token`} type="password" autoComplete="off" spellCheck={false} value={token} onChange={(e) => setToken(e.target.value)} required maxLength={2048} className="rental-input" aria-describedby={`${uid}-token-help`} /><p id={`${uid}-token-help`} className="text-xs leading-relaxed text-muted-foreground">In Verity, open Rental App connection, select the bank accounts, and create a token. It is stored encrypted on the server.</p><button disabled={busy || !configured || Boolean(connection?.revokePending)} className="rental-button-primary">{busy ? "Connecting…" : "Connect Verity"}</button>
+      </> : <form className="mt-5 max-w-xl space-y-3" onSubmit={(event) => { event.preventDefault(); void runOperation("connection"); }}>
+        <label htmlFor={`${uid}-token`} className="block text-sm font-medium">Connection token from Verity</label><input id={`${uid}-token`} type="password" disabled={busy} autoComplete="off" spellCheck={false} value={token} onChange={(e) => setToken(e.target.value)} required maxLength={2048} className="rental-input" aria-describedby={`${uid}-token-help`} /><p id={`${uid}-token-help`} className="text-xs leading-relaxed text-muted-foreground">In Verity, open Rental App connection, select the bank accounts, and create a token. It is stored encrypted on the server.</p><button disabled={busy || !configured || Boolean(connection?.revokePending)} className="rental-button-primary">{busy ? "Connecting…" : "Connect Verity"}</button>
       </form>}
+      {operation && <ConnectionProgress progress={operation.progress} startedAt={operation.startedAt} />}
       {connection?.revokePending && <div className="mt-4 text-sm"><p className="text-destructive">Verity could not confirm revocation. Retry before reconnecting, or revoke the token directly in Verity.</p><button disabled={busy} className="rental-button-secondary mt-3" onClick={() => void act(() => request("/retry-context", "POST"), "Revocation retried.")}>Retry revocation</button></div>}
     </section>
     <section className="rental-panel overflow-hidden" aria-labelledby={`${uid}-inbox`}>
@@ -75,7 +104,7 @@ export function VerityWorkspace({ targets, configured, accountEmail }: { targets
       {truncated && <p role="status" className="mt-2 text-sm text-warning">Showing the latest 10,000 imported transactions. Older matches remain saved.</p>}
       <div className="mt-4 flex flex-wrap gap-3"><input aria-label="Search imported transactions" placeholder="Search description, account or date" value={query} onChange={(e) => setQuery(e.target.value)} className="rental-input max-w-md" /><select aria-label="Transaction review filter" value={filter} onChange={(e) => setFilter(e.target.value)} className="rental-input w-auto"><option value="review">Needs matching</option><option value="all">All imported transactions</option></select></div></div>
       {!loading && visible.length === 0 && <div className="px-5 py-12 text-center"><h3 className="font-semibold">{transactions.length ? "No transactions in this view" : "Your bank matches will appear here"}</h3><p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">{transactions.length ? "Try another filter or search." : "Connect Verity and import transactions, then choose the rental record for each payment."}</p></div>}
-      <div className="divide-y divide-border">{visible.map((tx) => {
+      <div className="divide-y divide-border">{visible.slice(0, visibleLimit).map((tx) => {
         const allocations = tx.allocations.filter((a) => a.status === "CONFIRMED");
         const available = Math.max(0, Math.abs(tx.amountMinor) - allocations.reduce((sum, a) => sum + a.amountMinor, 0));
         return <article key={tx.id} className="p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1"><p className="break-words text-sm font-medium">{tx.description || "Bank transaction"}</p><p className="mt-1 text-xs text-muted-foreground">{tx.postedDate} · {tx.accountName}</p>{tx.counterpartyIban && <p className="mt-1 break-all text-xs text-muted-foreground">{tx.counterpartyIban}</p>}</div><div className="text-right"><p className={`text-base font-semibold ${tx.amountMinor > 0 ? "text-success" : "text-foreground"}`}>{money(tx.amountMinor, tx.currency)}</p><p className="mt-1 text-xs text-muted-foreground">{tx.status === "READY" ? (available ? "Awaiting match" : "Matched") : tx.status.replaceAll("_", " ").toLowerCase()}</p></div></div>
@@ -83,6 +112,7 @@ export function VerityWorkspace({ targets, configured, accountEmail }: { targets
           {selected === tx.id ? <MatchForm key={tx.id} transaction={tx} available={available} targets={targets} busy={busy} onCancel={() => setSelected(null)} onConfirm={(payload) => act(async () => { await request("/allocations", "POST", payload); setSelected(null); }, "Match saved. Any pending Verity update can be retried without posting it twice.")} /> : connected && tx.status === "READY" && tx.currency === "EUR" && available > 0 && <button disabled={busy} className="rental-button-secondary mt-4" onClick={() => setSelected(tx.id)}>Match {money(available)}</button>}
         </article>;
       })}</div>
+      {visible.length > visibleLimit && <div className="border-t border-border p-5"><button className="rental-button-secondary" onClick={() => setVisibleLimit((limit) => limit + 100)}>Show more transactions</button><span className="ml-3 text-sm text-muted-foreground">Showing {visibleLimit.toLocaleString()} of {visible.length.toLocaleString()}</span></div>}
     </section>
   </div>;
 }

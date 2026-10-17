@@ -58,8 +58,16 @@ Disconnect stops local imports and requests revocation in Verity. Imported recor
 
 ## Version 1 limits and validation
 
-Imports are manual, complete snapshots, not a scheduled sync or a durable change-event feed. Each refresh starts with no cursor. Rental fetches 100 transactions per page, up to 100 pages / 10,000 transactions; larger selections fail without importing a partial snapshot. Select fewer accounts to fit the limit. Repeated pages, duplicate source IDs and mismatched owners/accounts reject the import.
+Imports are manual, complete snapshots, not a scheduled sync or a durable change-event feed. Each refresh starts with no cursor. Rental fetches 500 transactions per page, up to 20 pages / 10,000 transactions; larger selections fail without importing a partial snapshot. Select fewer accounts to fit the limit. Repeated pages, duplicate source IDs and mismatched owners/accounts reject the import.
 
 Only EUR can be allocated in Rental version 1. Other currencies remain visible as unsupported and are not converted. Matching is explicit: there are no automatic payer rules, suggested bill creation, deposit allocations or inferred mortgage principal/interest splits.
 
 Local validation uses isolated SQLite for Rental persistence and isolated PGlite for Verity SQL, with synthetic owners and transactions. The local browser flow passed rent, utility and mortgage confirmations: three source transactions, three confirmed matches, three context records and no page errors. Repeating confirmation and refreshing produced no extra receipt. These checks exercise the implementation with fixtures; they do not prove production auth, a deployed database migration, or a real provider-backed end-to-end flow.
+
+## Connection and import progress
+
+The connection and import screens display server-reported stages, transaction counts and elapsed time. Counts during preparation are provisional until the complete database transaction commits. No simulated percentage or completion timer is used. Streaming clients request `application/x-ndjson`; ordinary JSON clients remain supported behind the same authentication and origin checks.
+
+Imports save in batches of 250, including source updates and missing-source review flags, while retaining the single-transaction commit and original evidence snapshots. Review queries fetch transactions and allocations separately to avoid the database parameter limit on larger histories. The screen initially renders 100 matching transactions with a Show more control; search still covers the loaded import.
+
+The progress stream belongs to the current page request, not a persistent background job. Keep the page open; after an interruption, reload to inspect the saved state before retrying. A successful import followed by a failed screen refresh is reported separately. Pending property-context updates remain retryable without posting receipts twice.

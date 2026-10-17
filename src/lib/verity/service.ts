@@ -1,10 +1,12 @@
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
-import type { PrismaClient, Prisma } from "@/generated/prisma/client";
+import { type PrismaClient, Prisma } from "@/generated/prisma/client";
 import { computePaymentStatus } from "@/lib/utils";
 import { createVerityClient, VerityIdentityError } from "./client";
 import { encryptToken, decryptToken } from "./crypto";
 import type { VerityContext, VerityTransaction as SourceTransaction } from "./schemas";
+
+import type { ReportProgress } from "./progress";
 
 export class IntegrationError extends Error {
   constructor(message: string, public status = 400) { super(message); }
@@ -71,7 +73,10 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
     } catch (error) {
       if (error instanceof IntegrationError) throw error;
       const code = (error as { code?: string }).code;
-      if (["P2002", "P2028", "P2034", "P1008"].includes(code ?? "")) {
+      if (code === "P2028" || code === "P1008") {
+        throw new IntegrationError("Saving took too long. This change was not committed. Retry; if it happens again, connect fewer accounts at once.", 503);
+      }
+      if (["P2002", "P2034"].includes(code ?? "")) {
         throw new IntegrationError("Another change is in progress or this request was already saved. Refresh and retry.", 409);
       }
       throw error;
@@ -97,12 +102,14 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
     } };
   }
 
-  async function connect(userId: string, token: string) {
+  async function connect(userId: string, token: string, report: ReportProgress = () => {}) {
+    report({ stage: "checking_key" });
     // Fail encryption configuration before any remote request or local persistence.
     const encryptedToken = encryptToken(token, userId);
     let remote;
     try { remote = await makeClient(token).getConnection(); }
     catch { throw new IntegrationError("Verity could not verify this token. Check the connection token and server configuration.", 502); }
+    report({ stage: "checking_email", accounts: remote.accounts.length });
     const existing = await db.verityConnection.findUnique({ where: { userId } });
     if (existing?.remoteOwnerId !== undefined && existing.remoteOwnerId !== remote.ownerId) {
       throw new IntegrationError("This Rental account is already bound to a different Verity owner. Its imported records cannot be reassigned.", 409);
@@ -118,6 +125,7 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
     const other = await db.verityConnection.findUnique({ where: { remoteOwnerId: remote.ownerId } });
     if (other && other.userId !== userId) throw new IntegrationError("This Verity owner is already connected to another Rental account.", 409);
     await requireMatchingEmail(userId, remote);
+    report({ stage: "saving_connection", accounts: remote.accounts.length });
     const values = { encryptedToken, remoteConnectionId: remote.connectionId, accountsJson: json(remote.accounts), status: "CONNECTED", lastError: null };
     if (existing) {
       await locked(userId, async (tx) => {
@@ -134,27 +142,39 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
     return getConnection(userId);
   }
 
-  async function sync(userId: string) {
+  async function sync(userId: string, report: ReportProgress = () => {}) {
     const connection = await db.verityConnection.findUnique({ where: { userId } });
     if (!connection?.encryptedToken || connection.status !== "CONNECTED") throw new IntegrationError("Connect Verity before syncing.", 409);
+    report({ stage: "checking_email" });
     const user = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } });
     let snapshot;
-    try { snapshot = await makeClient(decryptToken(connection.encryptedToken, userId)).getSnapshot(connection.remoteOwnerId, user.email); }
+    try { snapshot = await makeClient(decryptToken(connection.encryptedToken, userId)).getSnapshot(connection.remoteOwnerId, user.email, report); }
     catch (error) {
       const message = error instanceof VerityIdentityError ? error.message : "Sync failed. Nothing was imported. Check Verity access and try again.";
       await db.verityConnection.updateMany({ where: { userId, encryptedToken: connection.encryptedToken }, data: { lastError: message } });
       throw new IntegrationError(message, error instanceof VerityIdentityError ? 403 : 502);
     }
+    report({ stage: "saving_transactions", processed: 0, total: snapshot.transactions.length });
     const summary = await locked(userId, async (tx) => {
       const current = await tx.verityConnection.findUniqueOrThrow({ where: { userId } });
       if (current.revision !== connection.revision + 1 || current.encryptedToken !== connection.encryptedToken || snapshot.connection.ownerId !== current.remoteOwnerId) throw new IntegrationError("The connection changed during sync. Nothing was imported; retry.", 409);
       await requireMatchingEmail(userId, snapshot.connection, tx);
-      const existing = await tx.verityTransaction.findMany({ where: { userId, connectionId: current.id }, include: { allocations: { where: { status: "CONFIRMED" }, select: { id: true } } } });
+      const records = await tx.verityTransaction.findMany({ where: { userId, connectionId: current.id } });
+      const confirmed = await tx.verityAllocation.findMany({ where: { userId, status: "CONFIRMED" }, select: { id: true, transactionId: true } });
+      const confirmedByTransaction = new Map<string, { id: string }[]>();
+      for (const allocation of confirmed) {
+        const items = confirmedByTransaction.get(allocation.transactionId) ?? [];
+        items.push({ id: allocation.id }); confirmedByTransaction.set(allocation.transactionId, items);
+      }
+      const existing = records.map((row) => ({ ...row, allocations: confirmedByTransaction.get(row.id) ?? [] }));
       const byExternal = new Map(existing.map((row) => [row.externalId, row]));
       const bySource = new Map(existing.filter((row) => row.sourceKey).map((row) => [row.sourceKey, row.externalId]));
       const seen = new Set<string>();
       const now = new Date();
       const result = { imported: 0, updated: 0, needsReview: 0, removed: 0, total: snapshot.transactions.length };
+      const inserts: Prisma.VerityTransactionCreateManyInput[] = [];
+      const changes: Record<string, unknown>[] = [];
+      const unchanged: string[] = [];
       for (const source of snapshot.transactions) {
         const old = byExternal.get(source.id);
         if (source.sourceKey && bySource.has(source.sourceKey) && bySource.get(source.sourceKey) !== source.id) {
@@ -176,39 +196,86 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
           reviewReason: review ? "The source or its identity changed after import. Review allocations before continuing." : null,
         };
         if (old) {
-          await tx.verityTransaction.update({ where: { id: old.id }, data: values });
-          if (old.payloadJson !== json(source) || old.sourceMissing) result.updated++;
+          if (old.payloadJson === values.payloadJson && !old.sourceMissing && old.status === status && old.reviewReason === values.reviewReason && old.fingerprint === fingerprint) unchanged.push(old.id);
+          else changes.push({ id: old.id, ...values, lastSeenAt: now.getTime(), updatedAt: now.getTime() });
+          if (old.payloadJson !== values.payloadJson || old.sourceMissing) result.updated++;
         } else {
-          await tx.verityTransaction.create({ data: { ...values, userId, connectionId: current.id, externalId: source.id, originalJson: json(source) } });
+          inserts.push({ ...values, userId, connectionId: current.id, externalId: source.id, originalJson: json(source) });
           result.imported++;
         }
         if (review) result.needsReview++;
         seen.add(source.id);
       }
+      let processed = 0;
+      for (let offset = 0; offset < inserts.length; offset += 250) {
+        const batch = inserts.slice(offset, offset + 250);
+        await tx.verityTransaction.createMany({ data: batch });
+        processed += batch.length;
+        report({ stage: "saving_transactions", processed, total: snapshot.transactions.length });
+      }
+      // All values are bound parameters; only this fixed column allowlist forms SQL.
+      const columns = ["accountId", "accountName", "postedDate", "amountMinor", "currency", "description", "counterpartyName", "counterpartyIban", "sourceKey", "sourceUpdatedAt", "fingerprint", "payloadJson", "status", "sourceMissing", "lastSeenAt", "reviewReason", "updatedAt"];
+      for (let offset = 0; offset < changes.length; offset += 250) {
+        const batch = changes.slice(offset, offset + 250);
+        const selectColumns = Prisma.raw(["id", ...columns].map((column) => `json_extract(value, '$.${column}') AS "${column}"`).join(", "));
+        const assignments = Prisma.raw(columns.map((column) => `"${column}" = incoming."${column}"`).join(", "));
+        const count = await tx.$executeRaw(Prisma.sql`WITH incoming AS (SELECT ${selectColumns} FROM json_each(${json(batch)}))
+          UPDATE "VerityTransaction" SET ${assignments} FROM incoming
+          WHERE "VerityTransaction".id = incoming.id AND "VerityTransaction"."userId" = ${userId}`);
+        if (count !== batch.length) throw new IntegrationError("The imported records changed. Retry the complete import.", 409);
+        processed += batch.length;
+        report({ stage: "saving_transactions", processed, total: snapshot.transactions.length });
+      }
+      for (let offset = 0; offset < unchanged.length; offset += 250) {
+        const ids = unchanged.slice(offset, offset + 250);
+        await tx.verityTransaction.updateMany({ where: { userId, id: { in: ids } }, data: { lastSeenAt: now } });
+        processed += ids.length;
+        report({ stage: "saving_transactions", processed, total: snapshot.transactions.length });
+      }
+      const removed: string[] = [], removedWithMatches: string[] = [];
       for (const old of existing) {
         if (seen.has(old.externalId)) continue;
         const review = old.allocations.length > 0;
-        await tx.verityTransaction.update({ where: { id: old.id }, data: {
-          sourceMissing: true, status: review ? "NEEDS_REVIEW" : "REMOVED",
-          reviewReason: review ? "The confirmed bank transaction is no longer in the Verity snapshot. Review it; Rental has not reversed any money." : "No longer returned by Verity.",
-        } });
+        (review ? removedWithMatches : removed).push(old.id);
         if (review) result.needsReview++; else result.removed++;
       }
+      for (const [ids, review] of [[removed, false], [removedWithMatches, true]] as const) {
+        for (let offset = 0; offset < ids.length; offset += 250) await tx.verityTransaction.updateMany({
+          where: { userId, id: { in: ids.slice(offset, offset + 250) } },
+          data: { sourceMissing: true, status: review ? "NEEDS_REVIEW" : "REMOVED", reviewReason: review ? "The confirmed bank transaction is no longer in the Verity snapshot. Review it; Rental has not reversed any money." : "No longer returned by Verity." },
+        });
+      }
+      report({ stage: "committing", total: snapshot.transactions.length });
       await tx.verityConnection.update({ where: { userId }, data: { accountsJson: json(snapshot.connection.accounts), remoteConnectionId: snapshot.connection.connectionId, lastSyncedAt: now, lastError: null } });
       return result;
     });
-    await retryContext(userId).catch(() => undefined);
+    const pending = await db.verityAllocation.count({ where: { userId, contextStatus: { not: "SYNCED" } } });
+    if (pending) {
+      report({ stage: "sharing_context", total: pending });
+      await retryContext(userId).catch(() => undefined);
+    }
     return summary;
   }
 
   async function getTransactions(userId: string) {
-    const rows = await db.verityTransaction.findMany({ where: { userId }, include: { allocations: { orderBy: { createdAt: "desc" } } }, orderBy: [{ postedDate: "desc" }, { id: "asc" }], take: 10_001 });
+    // Query each owned table directly. A nested include with thousands of parent
+    // IDs exceeds SQLite/libSQL's bind parameter limit when ordering allocations.
+    const [rows, allocations] = await Promise.all([
+      db.verityTransaction.findMany({ where: { userId }, orderBy: [{ postedDate: "desc" }, { id: "asc" }], take: 10_001,
+        select: { id: true, externalId: true, accountId: true, accountName: true, postedDate: true, amountMinor: true, currency: true, description: true, counterpartyName: true, counterpartyIban: true, status: true, reviewReason: true, sourceMissing: true } }),
+      db.verityAllocation.findMany({ where: { userId }, orderBy: { createdAt: "desc" } }),
+    ]);
+    const byTransaction = new Map<string, typeof allocations>();
+    for (const allocation of allocations) {
+      const items = byTransaction.get(allocation.transactionId) ?? [];
+      items.push(allocation); byTransaction.set(allocation.transactionId, items);
+    }
     return { truncated: rows.length > 10_000, transactions: rows.slice(0, 10_000).map((row) => ({
       id: row.id, externalId: row.externalId, accountId: row.accountId, accountName: row.accountName,
       postedDate: row.postedDate, amountMinor: safeNumber(row.amountMinor), currency: row.currency,
       description: row.description, counterpartyName: row.counterpartyName, counterpartyIban: row.counterpartyIban,
       status: row.status, reviewReason: row.reviewReason, sourceMissing: row.sourceMissing,
-      allocations: row.allocations.map(safeAllocation),
+      allocations: (byTransaction.get(row.id) ?? []).map(safeAllocation),
     })) };
   }
 

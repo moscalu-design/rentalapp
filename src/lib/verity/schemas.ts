@@ -15,7 +15,7 @@ export const VerityTransactionSchema = z.object({
   counterpartyIban: z.string().max(128).nullable(), sourceKey: z.string().min(1).max(1000).nullable(),
   updatedAt: z.iso.datetime({ offset: true }),
 });
-export const VerityPageSchema = z.object({ version: z.literal(1), ownerId: identifier, transactions: z.array(VerityTransactionSchema).max(100), nextCursor: z.string().min(1).max(2000).nullable() });
+export const VerityPageSchema = z.object({ version: z.literal(1), ownerId: identifier, transactions: z.array(VerityTransactionSchema).max(500), nextCursor: z.string().min(1).max(2000).nullable() });
 export const VerityContextSchema = z.object({
   allocationId: identifier, transactionId: identifier, kind: z.enum(["rent", "expense", "mortgage"]),
   amountMinor: z.number().int().positive().safe(), propertyId: identifier, propertyName: z.string().min(1).max(500),

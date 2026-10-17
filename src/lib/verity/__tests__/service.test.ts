@@ -73,6 +73,28 @@ async function rent(amountMinor: number, mode: "add_receipt" | "link_existing" =
 async function paid() { return (await db.payment.findUniqueOrThrow({ where: { id: "payment-owner-1" } })).amountPaid; }
 
 describe("Verity persistence against a throwaway SQLite database", () => {
+  it("imports and refreshes 1200 records without duplicates", async () => {
+    transactions = Array.from({ length: 1200 }, (_, index) => source(`bulk-${index}`));
+    const start = performance.now();
+    expect(await service.sync("owner-1")).toMatchObject({ imported: 1200, total: 1200 });
+    const importedMs = Math.round(performance.now() - start);
+    const repeatStart = performance.now();
+    expect(await service.sync("owner-1")).toMatchObject({ imported: 0, updated: 0, total: 1200 });
+    console.info(JSON.stringify({ benchmark: "1200 transaction import", importedMs, repeatMs: Math.round(performance.now() - repeatStart) }));
+    expect(await db.verityTransaction.count()).toBe(1201);
+    transactions = transactions.map((row) => ({ ...row, amountMinor: row.amountMinor + 1, description: "Updated bulk source" }));
+    expect(await service.sync("owner-1")).toMatchObject({ imported: 0, updated: 1200, total: 1200 });
+    const updated = await db.verityTransaction.findUniqueOrThrow({ where: { userId_externalId: { userId: "owner-1", externalId: "bulk-999" } } });
+    expect(updated.amountMinor).toBe(BigInt(100001));
+    expect(updated.description).toBe("Updated bulk source");
+    const inbox = await service.getTransactions("owner-1");
+    expect(inbox.transactions).toHaveLength(1201);
+    expect(inbox.transactions.find((row) => row.externalId === "bulk-999")?.amountMinor).toBe(100001);
+    expect((await service.getTransactions("owner-2")).transactions).toEqual([]);
+    expect(JSON.parse(updated.originalJson).amountMinor).toBe(100000);
+
+  });
+
   it("rejects a different email before storing a new connection", async () => {
     remote = { ...remote, ownerId: "another-owner", ownerEmail: "wrong@test.local" };
     await expect(service.connect("owner-2", "wrong-email-token")).rejects.toMatchObject({ status: 403 });
