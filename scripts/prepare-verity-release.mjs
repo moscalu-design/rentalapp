@@ -13,7 +13,7 @@ if (process.env.VERCEL_TARGET_ENV === "production" && process.env.VERITY_API_BAS
 
 if (process.env.VERITY_APPLY_MIGRATION === version) {
   const url = process.env.DATABASE_URL;
-  if (!url || (!url.startsWith("libsql://") && !url.startsWith("file:"))) throw new Error("Expected an explicitly configured LibSQL or local test database.");
+  if (!url || (!url.startsWith("libsql://") && !url.startsWith("https://") && !url.startsWith("file:"))) throw new Error("Expected an explicitly configured LibSQL or local test database.");
   const client = createClient({ url, authToken: process.env.DATABASE_AUTH_TOKEN });
   const raw = await readFile(new URL(`../prisma/migrations/${version}_add_verity_connector/migration.sql`, import.meta.url), "utf8");
   const statements = raw.replace(/^\s*--.*$/gm, "").split(/;\s*(?:\n|$)/).map(x => x.trim()).filter(Boolean);
