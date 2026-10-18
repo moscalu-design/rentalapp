@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { type PrismaClient, Prisma } from "@/generated/prisma/client";
+import { isRecurringActiveInMonth } from "@/lib/expenses";
 import { computePaymentStatus } from "@/lib/utils";
 import { createVerityClient, VerityIdentityError } from "./client";
 import { encryptToken, decryptToken } from "./crypto";
@@ -45,9 +46,24 @@ export const AllocationInputSchema = z.object({
   kind: z.enum(["rent", "expense", "mortgage"]),
   targetId: z.string().min(1).max(256),
   amountMinor: z.number().int().positive().safe(),
-  mode: z.enum(["link_existing", "add_receipt"]),
+  mode: z.enum(["link_existing", "add_receipt", "create_expense"]),
+  newExpense: z.object({
+    title: z.string().trim().min(1).max(200),
+    category: z.enum(["ELECTRICITY", "GAS", "WATER", "HEATING", "INTERNET"]),
+    reportingYear: z.number().int().min(2000).max(2100),
+    reportingMonth: z.number().int().min(1).max(12),
+    provider: z.string().trim().max(100).optional(),
+  }).strict().optional(),
   idempotencyKey: z.string().min(1).max(128).optional(),
-}).strict();
+}).strict().superRefine((input, ctx) => {
+  const creating = input.mode === "create_expense";
+  if (creating && (input.kind !== "expense" || !input.newExpense)) {
+    ctx.addIssue({ code: "custom", message: "Creating a utility cost requires expense details.", path: ["newExpense"] });
+  }
+  if (!creating && input.newExpense) {
+    ctx.addIssue({ code: "custom", message: "Expense details are only allowed when creating a utility cost.", path: ["newExpense"] });
+  }
+});
 export type AllocationInput = z.infer<typeof AllocationInputSchema>;
 
 function safeAllocation<T extends { amountMinor: bigint }>(allocation: T) {
@@ -313,6 +329,7 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
       if (alreadyAllocated + BigInt(amount) > BigInt(Math.abs(sourceAmount))) throw new IntegrationError("This allocation exceeds the transaction's unallocated amount.", 409);
       const claimed = await tx.verityAllocation.aggregate({ where: { userId, kind: input.kind, targetId: input.targetId, status: "CONFIRMED" }, _sum: { amountMinor: true } });
       const targetClaimed = safeNumber(claimed._sum.amountMinor ?? BigInt(0));
+      let targetId = input.targetId;
       let propertyId: string;
       let propertyName: string;
       let targetLabel: string;
@@ -346,11 +363,40 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
         propertyName = payment.occupancy.room.property.name;
         targetLabel = `${payment.occupancy.tenant.firstName} ${payment.occupancy.tenant.lastName} · ${payment.periodYear}-${String(payment.periodMonth).padStart(2, "0")}`;
       } else if (input.kind === "expense") {
-        if (input.mode !== "link_existing") throw new IntegrationError("Version 1 links an existing property expense. Record the expense first, then match it.", 409);
-        const expense = await tx.propertyExpense.findFirst({ where: { id: input.targetId, userId, property: { userId } }, include: { property: true } });
-        if (!expense) throw new IntegrationError("Property expense not found.", 404);
-        if (targetClaimed + amount > minor(expense.amount)) throw new IntegrationError("The match exceeds the expense's unlinked amount.", 409);
-        propertyId = expense.propertyId; propertyName = expense.property.name; targetLabel = expense.title;
+        if (input.mode === "create_expense") {
+          const details = input.newExpense!;
+          // On creation the requested target is the property; the saved allocation
+          // and Verity context always point to the newly created expense.
+          const property = await tx.property.findFirst({ where: { id: input.targetId, userId } });
+          if (!property) throw new IntegrationError("Property not found.", 404);
+          const candidates = await tx.propertyExpense.findMany({ where: {
+            userId, propertyId: property.id, category: details.category, amount: amount / 100,
+            OR: [
+              { reportingYear: details.reportingYear, reportingMonth: details.reportingMonth },
+              { recurrenceType: { not: "ONE_OFF" }, coverageStart: { not: null } },
+            ],
+          } });
+          if (candidates.some((expense) => expense.recurrenceType !== "ONE_OFF" && expense.coverageStart
+            ? isRecurringActiveInMonth(expense, details.reportingYear, details.reportingMonth)
+            : expense.reportingYear === details.reportingYear && expense.reportingMonth === details.reportingMonth)) {
+            throw new IntegrationError("A cost with this category and amount already covers this property and reporting month. Link the existing bill instead of creating a duplicate.", 409);
+          }
+          const expense = await tx.propertyExpense.create({ data: {
+            userId, propertyId: property.id, title: details.title, category: details.category,
+            amount: amount / 100, paymentDate: new Date(`${source.postedDate}T12:00:00Z`),
+            reportingYear: details.reportingYear, reportingMonth: details.reportingMonth,
+            provider: details.provider || null, recurrenceType: "ONE_OFF",
+          } });
+          targetId = expense.id;
+          propertyId = property.id; propertyName = property.name; targetLabel = expense.title;
+          ledgerAfterJson = json(expense);
+        } else {
+          if (input.mode !== "link_existing") throw new IntegrationError("Link an existing property expense or create a utility cost.", 409);
+          const expense = await tx.propertyExpense.findFirst({ where: { id: input.targetId, userId, property: { userId } }, include: { property: true } });
+          if (!expense) throw new IntegrationError("Property expense not found.", 404);
+          if (targetClaimed + amount > minor(expense.amount)) throw new IntegrationError("The match exceeds the expense's unlinked amount.", 409);
+          propertyId = expense.propertyId; propertyName = expense.property.name; targetLabel = expense.title;
+        }
       } else {
         if (input.mode !== "add_receipt") throw new IntegrationError("A mortgage allocation records an actual bank payment. Use add_receipt; forecasts are unchanged.", 409);
         const mortgage = await tx.mortgage.findFirst({ where: { id: input.targetId, userId, property: { userId } }, include: { property: true } });
@@ -358,10 +404,10 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
         propertyId = mortgage.propertyId; propertyName = mortgage.property.name; targetLabel = mortgage.label || mortgage.lender || "Mortgage payment";
       }
       const id = randomUUID();
-      const context: VerityContext = { allocationId: id, transactionId: source.externalId, kind: input.kind, amountMinor: amount, propertyId, propertyName, targetId: input.targetId, targetLabel };
+      const context: VerityContext = { allocationId: id, transactionId: source.externalId, kind: input.kind, amountMinor: amount, propertyId, propertyName, targetId, targetLabel };
       const created = await tx.verityAllocation.create({ data: {
         id, userId, transactionId: source.id, idempotencyKey, requestHash,
-        kind: input.kind, targetId: input.targetId, targetLabel, propertyId, propertyName,
+        kind: input.kind, targetId, targetLabel, propertyId, propertyName,
         amountMinor: BigInt(amount), mode: input.mode, sourceSnapshotJson: source.payloadJson,
         ledgerBeforeJson, ledgerAfterJson, contextPayloadJson: json(context),
       } });
@@ -389,6 +435,16 @@ export function createVerityService(db: Database, makeClient: ClientFactory = cr
         if (safeNumber(remaining._sum.amountMinor ?? BigInt(0)) > minor(before.amountPaid)) throw new IntegrationError("Other matches now depend on this receipt. Undo those matches first.", 409);
         const changed = await tx.payment.updateMany({ where: { id: row.targetId, userId, updatedAt: payment.updatedAt, amountPaid: payment.amountPaid }, data: { amountPaid: before.amountPaid, status: before.status, paidAt: before.paidAt ? new Date(before.paidAt) : null, paymentMethod: before.paymentMethod } });
         if (changed.count !== 1) throw new IntegrationError("The rent changed during undo. Refresh before retrying.", 409);
+      }
+      if (row.kind === "expense" && row.mode === "create_expense") {
+        const expense = await tx.propertyExpense.findFirst({ where: { id: row.targetId, userId, property: { userId } } });
+        if (!expense || !row.ledgerAfterJson || json(expense) !== row.ledgerAfterJson) {
+          throw new IntegrationError("This utility cost changed after import. Undo cannot delete an edited cost; review it manually.", 409);
+        }
+        const dependent = await tx.verityAllocation.count({ where: { userId, kind: "expense", targetId: row.targetId, status: "CONFIRMED", id: { not: id } } });
+        if (dependent) throw new IntegrationError("Other matches depend on this cost. Undo those matches first.", 409);
+        const removed = await tx.propertyExpense.deleteMany({ where: { id: expense.id, userId, updatedAt: expense.updatedAt } });
+        if (removed.count !== 1) throw new IntegrationError("The utility cost changed during undo. Refresh before retrying.", 409);
       }
       const connection = await tx.verityConnection.findUniqueOrThrow({ where: { userId } });
       const alreadyRevoked = connection.status === "DISCONNECTED" && !connection.revokePending && !connection.encryptedToken;

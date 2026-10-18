@@ -12,7 +12,8 @@ Imports stage transactions for review. They do not record rent or automatically 
 | --- | --- | --- |
 | Rent: already recorded | Links bank evidence to an existing unlinked portion of cumulative `Payment.amountPaid` | The paid amount does not increase |
 | Rent: not recorded yet | Adds the confirmed amount to the selected tenancy and billing period, within the remaining rent due | Existing manual receipts must be linked first; deposits are separate |
-| Utility or property cost | Links a debit to an existing `PropertyExpense`, within its unlinked amount | Create the bill first; its amount, reporting month, service coverage and receipt stay unchanged |
+| Utility: not recorded yet | Creates a one-off electricity, gas, water, heating or internet cost and links its debit atomically | Confirm the property, category and reporting month; payment date comes from Verity |
+| Utility or property cost: already recorded | Links a debit to an existing `PropertyExpense`, within its unlinked amount | Create the bill first; its amount, reporting month, service coverage and receipt stay unchanged |
 | Mortgage payment | Records an actual cash allocation against the selected mortgage | Loan terms, forecast principal/interest, prepayments and scenarios remain separate |
 
 One transaction may be split across targets, and several transactions may cover one target. Source allocations cannot exceed the absolute bank amount. Rent needs a credit; utility and mortgage payments need a debit. Mortgage allocations appear in **Actual mortgage payments** at `/properties/[propertyId]/mortgages/[mortgageId]`.
@@ -52,6 +53,8 @@ Verity exposes `/api/integrations/rental/v1/connection`, `/transactions` and `/c
 
 Confirmation is idempotent for the same request key and payload. A conflicting payload is rejected. Context delivery happens after the local confirmation: a network failure leaves money saved once in Rental and marks its Verity update pending. **Retry pending updates** retries the metadata, not the receipt. An in-flight update followed by undo queues a deletion rather than treating the old update as final.
 
+Undoing a newly created utility cost removes both the cost and its allocation only while the cost remains unchanged and has no dependent matches. An edited cost or added receipt blocks automatic deletion. Repeated confirmations and refreshes do not create another cost. Creation also rejects an existing cost with the same property, category and amount covering the reporting month, including recurring costs; link the existing bill instead.
+
 Undoing a link removes the allocation while preserving manually recorded rent or the bill. Undoing a new rent receipt restores its previous monetary state only when safe. Undo split receipts in reverse order; a later financial edit or dependent match can block reversal. Notes and references are preserved. Mortgage undo removes the actual cash allocation without rewriting the loan model.
 
 Disconnect stops local imports and requests revocation in Verity. Imported records and confirmed rental money remain. A network failure keeps revocation pending and blocks replacement until retried; an already expired or revoked token counts as inactive. To replace a token, disconnect first, create a new token for the same Verity owner, reconnect and import a fresh snapshot. Confirmed context is reattached only for eligible sources in the refreshed scope, without recording the money again.
@@ -60,7 +63,7 @@ Disconnect stops local imports and requests revocation in Verity. Imported recor
 
 Imports are manual, complete snapshots, not a scheduled sync or a durable change-event feed. Each refresh starts with no cursor. Rental fetches 500 transactions per page, up to 20 pages / 10,000 transactions; larger selections fail without importing a partial snapshot. Select fewer accounts to fit the limit. Repeated pages, duplicate source IDs and mismatched owners/accounts reject the import.
 
-Only EUR can be allocated in Rental version 1. Other currencies remain visible as unsupported and are not converted. Matching is explicit: there are no automatic payer rules, suggested bill creation, deposit allocations or inferred mortgage principal/interest splits.
+Only EUR can be allocated in Rental version 1. Other currencies remain visible as unsupported and are not converted. Matching is explicit: there are no automatic payer rules, automatic bill creation, deposit allocations or inferred mortgage principal/interest splits.
 
 Local validation uses isolated SQLite for Rental persistence and isolated PGlite for Verity SQL, with synthetic owners and transactions. The local browser flow passed rent, utility and mortgage confirmations: three source transactions, three confirmed matches, three context records and no page errors. Repeating confirmation and refreshing produced no extra receipt. These checks exercise the implementation with fixtures; they do not prove production auth, a deployed database migration, or a real provider-backed end-to-end flow.
 
@@ -71,3 +74,9 @@ The connection and import screens display server-reported stages, transaction co
 Imports save in batches of 250, including source updates and missing-source review flags, while retaining the single-transaction commit and original evidence snapshots. Review queries fetch transactions and allocations separately to avoid the database parameter limit on larger histories. The screen initially renders 100 matching transactions with a Show more control; search still covers the loaded import.
 
 The progress stream belongs to the current page request, not a persistent background job. Keep the page open; after an interruption, reload to inspect the saved state before retrying. A successful import followed by a failed screen refresh is reported separately. Pending property-context updates remain retryable without posting receipts twice.
+
+## Create a utility cost from Verity
+
+In Settings → Verity connection, import transactions and open **Match** on a EUR debit. Choose **Utility or property cost**, then **Not recorded yet — create utility cost**. Confirm the property, utility category, title, optional provider and reporting month. The amount defaults to the unmatched bank amount and can be reduced for a split. **Create utility cost and match** saves both records together. The cost appears in the property's Costs page and reporting totals. It is a one-off actual payment; no recurrence or service coverage is inferred.
+
+The allocation API accepts `mode: "create_expense"`, `kind: "expense"`, `targetId` equal to the owned property ID, and `newExpense` containing `title`, `category`, `reportingYear`, `reportingMonth` and optional `provider`. Saved allocations and outgoing Verity context use the created expense ID as their target. No database migration is required.

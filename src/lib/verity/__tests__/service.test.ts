@@ -214,6 +214,73 @@ describe("Verity persistence against a throwaway SQLite database", () => {
     expect(await db.verityTransaction.count()).toBe(1);
     expect((await service.getTransactions("owner-1")).transactions[0].status).toBe("READY");
   });
+  async function utilityInput(amountMinor = 12550) {
+    transactions = [source("utility-debit", -30000)];
+    await service.sync("owner-1");
+    return {
+      transactionId: await transactionId("utility-debit"), kind: "expense" as const,
+      targetId: "property-owner-1", amountMinor, mode: "create_expense" as const,
+      idempotencyKey: "utility-confirmation",
+      newExpense: { title: "September electricity", category: "ELECTRICITY" as const, reportingYear: 2026, reportingMonth: 9, provider: "Energy provider" },
+    };
+  }
+  it("creates a utility cost and context atomically, retries once and safely undoes it", async () => {
+    const input = await utilityInput();
+    putContext.mockRejectedValueOnce(new Error("Temporarily offline"));
+    const result = await service.allocate("owner-1", input);
+    expect(result.contextPending).toBe(true);
+    const expense = await db.propertyExpense.findUniqueOrThrow({ where: { id: result.allocation.targetId } });
+    expect(expense).toMatchObject({ userId: "owner-1", propertyId: "property-owner-1", title: input.newExpense.title, category: "ELECTRICITY", amount: 125.5, paymentDate: new Date("2026-10-15T12:00:00Z"), reportingYear: 2026, reportingMonth: 9, provider: "Energy provider", recurrenceType: "ONE_OFF", coverageStart: null, coverageEnd: null });
+    const retry = await service.allocate("owner-1", input);
+    expect(retry.allocation.id).toBe(result.allocation.id);
+    expect(await db.propertyExpense.count()).toBe(1);
+    expect(await db.verityAllocation.count()).toBe(1);
+    expect(putContext).toHaveBeenLastCalledWith(expect.objectContaining({ targetId: expense.id, propertyId: "property-owner-1", kind: "expense", amountMinor: 12550 }));
+    await service.sync("owner-1");
+    expect(await db.propertyExpense.count()).toBe(1);
+    await service.undo("owner-1", result.allocation.id);
+    expect(await db.propertyExpense.count()).toBe(0);
+    expect(deleteContext).toHaveBeenCalledWith(result.allocation.id);
+    await service.undo("owner-1", result.allocation.id);
+    expect(await db.propertyExpense.count()).toBe(0);
+  });
+  it("rejects duplicate manual and recurring costs for the reporting month", async () => {
+    const input = await utilityInput();
+    const expense = await db.propertyExpense.create({ data: { userId: "owner-1", propertyId: "property-owner-1", title: "Already recorded", category: "ELECTRICITY", amount: 125.5, paymentDate: new Date("2026-09-01"), reportingYear: 2026, reportingMonth: 9 } });
+    await expect(service.allocate("owner-1", input)).rejects.toThrow("already covers");
+    await db.propertyExpense.update({ where: { id: expense.id }, data: { reportingMonth: 1, recurrenceType: "MONTHLY", coverageStart: new Date("2026-01-01") } });
+    await expect(service.allocate("owner-1", input)).rejects.toThrow("already covers");
+    expect(await db.propertyExpense.count()).toBe(1);
+    expect(await db.verityAllocation.count()).toBe(0);
+  });
+  it("protects edited utility costs from undo", async () => {
+    const result = await service.allocate("owner-1", await utilityInput());
+    await db.propertyExpense.update({ where: { id: result.allocation.targetId }, data: { notes: "Added receipt notes" } });
+    await expect(service.undo("owner-1", result.allocation.id)).rejects.toThrow("changed after import");
+    expect(await db.propertyExpense.count()).toBe(1);
+    expect((await db.verityAllocation.findUniqueOrThrow({ where: { id: result.allocation.id } })).status).toBe("CONFIRMED");
+  });
+  it("validates utility details, ownership, debit direction and remaining cash before creating costs", async () => {
+    const input = await utilityInput();
+    await expect(service.allocate("owner-1", { ...input, targetId: "property-owner-2" })).rejects.toThrow("Property not found");
+    await expect(service.allocate("owner-1", { ...input, amountMinor: 30001 })).rejects.toThrow("unallocated amount");
+    await expect(service.allocate("owner-1", { ...input, newExpense: undefined })).rejects.toThrow();
+    await expect(service.allocate("owner-1", { ...input, kind: "rent" })).rejects.toThrow();
+    await expect(service.allocate("owner-1", { ...input, mode: "link_existing" })).rejects.toThrow();
+    await expect(service.allocate("owner-1", { ...input, newExpense: { ...input.newExpense, reportingMonth: 13 } })).rejects.toThrow();
+    transactions = [source("utility-debit", 30000)]; await service.sync("owner-1");
+    await expect(service.allocate("owner-1", input)).rejects.toThrow("bank debit");
+    expect(await db.propertyExpense.count()).toBe(0);
+    expect(await db.verityAllocation.count()).toBe(0);
+  });
+  it("rolls back the cost if its allocation cannot be saved", async () => {
+    const input = await utilityInput();
+    const setup = createClient({ url: databaseUrl });
+    await setup.executeMultiple(`CREATE TRIGGER reject_utility_allocation BEFORE INSERT ON VerityAllocation BEGIN SELECT RAISE(ABORT, 'test failure'); END;`);
+    setup.close();
+    await expect(service.allocate("owner-1", input)).rejects.toThrow();
+    expect(await db.propertyExpense.count()).toBe(0);
+  });
   it("links an existing expense once and stores mortgage cash separately from forecasts", async () => {
     await db.propertyExpense.create({ data: { id: "expense", userId: "owner-1", propertyId: "property-owner-1", title: "Repairs", category: "REPAIRS", amount: 300, paymentDate: new Date("2026-10-15"), reportingYear: 2026, reportingMonth: 10, notes: "receipt notes" } });
     const mortgage = await db.mortgage.create({ data: { id: "mortgage", userId: "owner-1", propertyId: "property-owner-1", label: "Main loan", startDate: new Date("2026-01-01"), termMonths: 240, initialBalance: 100000, interestRate: 3, monthlyPayment: 700 } });

@@ -9,8 +9,9 @@ import { runVerityOperation } from "@/lib/verity/progress-client";
 import type { VerityProgress } from "@/lib/verity/progress";
 
 export type RentalTarget = { id: string; kind: "rent" | "expense" | "mortgage"; label: string; detail: string; href: string };
+type RentalProperty = { id: string; name: string };
 type Allocation = { id: string; kind: RentalTarget["kind"]; targetId: string; amountMinor: number; mode: string; status: string; contextStatus: string };
-type Transaction = { id: string; externalId: string; amountMinor: number; currency: string; postedDate: string; description: string; accountName: string; counterpartyIban?: string | null; status: string; allocations: Allocation[] };
+type Transaction = { id: string; externalId: string; amountMinor: number; currency: string; postedDate: string; description: string; accountName: string; counterpartyName?: string | null; counterpartyIban?: string | null; status: string; allocations: Allocation[] };
 type Connection = { id: string; remoteOwnerId: string; accounts: { id: string; name: string; currency: string }[]; lastSyncedAt: string | null; lastError: string | null; status: string; pendingContextCount?: number; revokePending?: boolean };
 const API = "/api/integrations/verity";
 async function request<T>(path: string, method = "GET", body?: unknown): Promise<T> {
@@ -21,7 +22,7 @@ async function request<T>(path: string, method = "GET", body?: unknown): Promise
 }
 function money(amount: number, currency = "EUR") { return new Intl.NumberFormat("en-GB", { style: "currency", currency }).format(amount / (10 ** new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions().maximumFractionDigits!)); }
 
-export function VerityWorkspace({ targets, configured, accountEmail }: { targets: RentalTarget[]; configured: boolean; accountEmail: string }) {
+export function VerityWorkspace({ targets, properties, configured, accountEmail }: { targets: RentalTarget[]; properties: RentalProperty[]; configured: boolean; accountEmail: string }) {
   const router = useRouter();
   const [truncated, setTruncated] = useState(false);
   const [connection, setConnection] = useState<Connection | null>(null);
@@ -108,8 +109,8 @@ export function VerityWorkspace({ targets, configured, accountEmail }: { targets
         const allocations = tx.allocations.filter((a) => a.status === "CONFIRMED");
         const available = Math.max(0, Math.abs(tx.amountMinor) - allocations.reduce((sum, a) => sum + a.amountMinor, 0));
         return <article key={tx.id} className="p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1"><p className="break-words text-sm font-medium">{tx.description || "Bank transaction"}</p><p className="mt-1 text-xs text-muted-foreground">{tx.postedDate} · {tx.accountName}</p>{tx.counterpartyIban && <p className="mt-1 break-all text-xs text-muted-foreground">{tx.counterpartyIban}</p>}</div><div className="text-right"><p className={`text-base font-semibold ${tx.amountMinor > 0 ? "text-success" : "text-foreground"}`}>{money(tx.amountMinor, tx.currency)}</p><p className="mt-1 text-xs text-muted-foreground">{tx.status === "READY" ? (available ? "Awaiting match" : "Matched") : tx.status.replaceAll("_", " ").toLowerCase()}</p></div></div>
-          {allocations.length > 0 && <ul className="mt-4 space-y-2">{allocations.map((a) => { const target = targets.find((target) => target.id === a.targetId && target.kind === a.kind); return <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2 text-sm"><div>{target ? <Link href={target.href} className="text-primary hover:underline">{target.label}</Link> : <span>{a.kind} match</span>}<p className="mt-1 text-xs text-muted-foreground">{money(a.amountMinor)} · {a.mode === "link_existing" ? "Linked to existing record" : a.kind === "mortgage" ? "Actual mortgage payment" : "Receipt recorded"}{a.contextStatus !== "SYNCED" ? " · Verity update pending" : " · Shared with Verity"}</p></div><button disabled={busy} className="text-xs text-primary underline" onClick={() => void act(() => request(`/allocations/${a.id}`, "DELETE"), "Match undone. Review the updated record before matching again.")}>Undo match</button></li>; })}</ul>}
-          {selected === tx.id ? <MatchForm key={tx.id} transaction={tx} available={available} targets={targets} busy={busy} onCancel={() => setSelected(null)} onConfirm={(payload) => act(async () => { await request("/allocations", "POST", payload); setSelected(null); }, "Match saved. Any pending Verity update can be retried without posting it twice.")} /> : connected && tx.status === "READY" && tx.currency === "EUR" && available > 0 && <button disabled={busy} className="rental-button-secondary mt-4" onClick={() => setSelected(tx.id)}>Match {money(available)}</button>}
+          {allocations.length > 0 && <ul className="mt-4 space-y-2">{allocations.map((a) => { const target = targets.find((target) => target.id === a.targetId && target.kind === a.kind); return <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2 text-sm"><div>{target ? <Link href={target.href} className="text-primary hover:underline">{target.label}</Link> : <span>{a.kind} match</span>}<p className="mt-1 text-xs text-muted-foreground">{money(a.amountMinor)} · {a.mode === "link_existing" ? "Linked to existing record" : a.kind === "mortgage" ? "Actual mortgage payment" : a.mode === "create_expense" ? "Utility cost created" : "Receipt recorded"}{a.contextStatus !== "SYNCED" ? " · Verity update pending" : " · Shared with Verity"}</p></div><button disabled={busy} className="text-xs text-primary underline" onClick={() => void act(() => request(`/allocations/${a.id}`, "DELETE"), "Match undone. Review the updated record before matching again.")}>Undo match</button></li>; })}</ul>}
+          {selected === tx.id ? <MatchForm key={tx.id} transaction={tx} available={available} targets={targets} properties={properties} busy={busy} onCancel={() => setSelected(null)} onConfirm={(payload) => act(async () => { await request("/allocations", "POST", payload); setSelected(null); }, "Match saved. Any pending Verity update can be retried without posting it twice.")} /> : connected && tx.status === "READY" && tx.currency === "EUR" && available > 0 && <button disabled={busy} className="rental-button-secondary mt-4" onClick={() => setSelected(tx.id)}>Match {money(available)}</button>}
         </article>;
       })}</div>
       {visible.length > visibleLimit && <div className="border-t border-border p-5"><button className="rental-button-secondary" onClick={() => setVisibleLimit((limit) => limit + 100)}>Show more transactions</button><span className="ml-3 text-sm text-muted-foreground">Showing {visibleLimit.toLocaleString()} of {visible.length.toLocaleString()}</span></div>}
@@ -117,25 +118,70 @@ export function VerityWorkspace({ targets, configured, accountEmail }: { targets
   </div>;
 }
 
-function MatchForm({ transaction, available, targets, busy, onCancel, onConfirm }: { transaction: Transaction; available: number; targets: RentalTarget[]; busy: boolean; onCancel: () => void; onConfirm: (value: unknown) => Promise<void> }) {
+const UTILITY_CATEGORIES = ["ELECTRICITY", "GAS", "WATER", "HEATING", "INTERNET"] as const;
+
+function MatchForm({ transaction, available, targets, properties, busy, onCancel, onConfirm }: {
+  transaction: Transaction; available: number; targets: RentalTarget[]; properties: RentalProperty[];
+  busy: boolean; onCancel: () => void; onConfirm: (value: unknown) => Promise<void>;
+}) {
   const uid = useId();
   const [kind, setKind] = useState<RentalTarget["kind"]>(transaction.amountMinor > 0 ? "rent" : "expense");
   const [targetId, setTargetId] = useState("");
   const [mode, setMode] = useState("link_existing");
+  const [expenseMode, setExpenseMode] = useState("link_existing");
+  const [propertyId, setPropertyId] = useState("");
+  const [category, setCategory] = useState("");
+  const [title, setTitle] = useState(transaction.description.slice(0, 200));
+  const [provider, setProvider] = useState((transaction.counterpartyName ?? "").slice(0, 100));
+  const [reportingPeriod, setReportingPeriod] = useState(transaction.postedDate.slice(0, 7));
   const [amount, setAmount] = useState((available / 100).toFixed(2));
   const [search, setSearch] = useState("");
   const [formError, setFormError] = useState("");
   const requestKey = useRef({ signature: "", id: "" });
+  const creating = kind === "expense" && expenseMode === "create_expense";
   const choices = targets.filter((target) => target.kind === kind && target.label.toLowerCase().includes(search.toLowerCase()));
   const chosen = targets.find((target) => target.id === targetId && target.kind === kind);
-  return <form className="mt-5 space-y-4 border-t border-border pt-5" onSubmit={(event) => { event.preventDefault(); setFormError(""); if (!/^\d+(\.\d{1,2})?$/.test(amount)) { setFormError("Enter a positive amount with no more than two decimal places."); return; } const [whole, fraction = ""] = amount.split("."); const amountMinor = Number(whole) * 100 + Number(fraction.padEnd(2, "0")); if (!Number.isSafeInteger(amountMinor) || amountMinor <= 0 || amountMinor > available) { setFormError("The amount must fit within the unmatched bank transaction."); return; } const payload = { transactionId: transaction.id, kind, targetId, amountMinor, mode: kind === "mortgage" ? "add_receipt" : kind === "expense" ? "link_existing" : mode }; const signature = JSON.stringify(payload); if (requestKey.current.signature !== signature) requestKey.current = { signature, id: crypto.randomUUID() }; void onConfirm({ ...payload, idempotencyKey: requestKey.current.id }); }}>
-    <div className="grid gap-4 sm:grid-cols-2"><div><label htmlFor={`${uid}-kind`} className="mb-1.5 block text-sm font-medium">Payment type</label><select id={`${uid}-kind`} value={kind} onChange={(event) => { setKind(event.target.value as RentalTarget["kind"]); setTargetId(""); }} className="rental-input">{transaction.amountMinor > 0 ? <option value="rent">Rent received</option> : <><option value="expense">Utility or property cost</option><option value="mortgage">Mortgage payment</option></>}</select></div><div><label htmlFor={`${uid}-amount`} className="mb-1.5 block text-sm font-medium">Amount to match (EUR)</label><input id={`${uid}-amount`} inputMode="decimal" required value={amount} onChange={(event) => setAmount(event.target.value)} className="rental-input" /></div></div>
-    <div><label htmlFor={`${uid}-search`} className="mb-1.5 block text-sm font-medium">Find a rental record</label><input id={`${uid}-search`} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Property, tenant or period" className="rental-input" /></div>
-    <div><label htmlFor={`${uid}-target`} className="mb-1.5 block text-sm font-medium">{kind === "rent" ? "Tenancy and rent period" : kind === "mortgage" ? "Property and mortgage" : "Existing bill"}</label><select id={`${uid}-target`} required value={targetId} onChange={(event) => setTargetId(event.target.value)} className="rental-input"><option value="">Choose a record</option>{choices.map((target) => <option key={target.id} value={target.id}>{target.label}</option>)}</select>{chosen && <p className="mt-2 text-sm text-muted-foreground">{chosen.detail}</p>}{choices.length === 0 && <p className="mt-2 text-sm text-muted-foreground">No matching record. Add the {kind === "expense" ? "bill with its reporting period" : kind === "mortgage" ? "mortgage" : "tenancy and rent period"} in Rental App, then return here.</p>}</div>
+  return <form className="mt-5 space-y-4 border-t border-border pt-5" onSubmit={(event) => {
+    event.preventDefault(); setFormError("");
+    if (!/^\d+(\.\d{1,2})?$/.test(amount)) { setFormError("Enter a positive amount with no more than two decimal places."); return; }
+    const [whole, fraction = ""] = amount.split(".");
+    const amountMinor = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
+    if (!Number.isSafeInteger(amountMinor) || amountMinor <= 0 || amountMinor > available) { setFormError("The amount must fit within the unmatched bank transaction."); return; }
+    const [reportingYear, reportingMonth] = reportingPeriod.split("-").map(Number);
+    const payload = {
+      transactionId: transaction.id, kind, targetId: creating ? propertyId : targetId, amountMinor,
+      mode: kind === "mortgage" ? "add_receipt" : kind === "expense" ? expenseMode : mode,
+      ...(creating ? { newExpense: { title: title.trim(), category, reportingYear, reportingMonth, provider: provider.trim() } } : {}),
+    };
+    const signature = JSON.stringify(payload);
+    if (requestKey.current.signature !== signature) requestKey.current = { signature, id: crypto.randomUUID() };
+    void onConfirm({ ...payload, idempotencyKey: requestKey.current.id });
+  }}>
+    <div className="grid gap-4 sm:grid-cols-2">
+      <div><label htmlFor={`${uid}-kind`} className="mb-1.5 block text-sm font-medium">Payment type</label><select id={`${uid}-kind`} value={kind} onChange={(event) => { setKind(event.target.value as RentalTarget["kind"]); setTargetId(""); }} className="rental-input">{transaction.amountMinor > 0 ? <option value="rent">Rent received</option> : <><option value="expense">Utility or property cost</option><option value="mortgage">Mortgage payment</option></>}</select></div>
+      <div><label htmlFor={`${uid}-amount`} className="mb-1.5 block text-sm font-medium">Amount to match (EUR)</label><input id={`${uid}-amount`} inputMode="decimal" required value={amount} onChange={(event) => setAmount(event.target.value)} className="rental-input" /></div>
+    </div>
+    {kind === "expense" && <div><label htmlFor={`${uid}-expense-mode`} className="mb-1.5 block text-sm font-medium">How should this affect property costs?</label><select id={`${uid}-expense-mode`} value={expenseMode} onChange={(event) => setExpenseMode(event.target.value)} className="rental-input"><option value="link_existing">Already recorded — link an existing bill</option><option value="create_expense">Not recorded yet — create utility cost</option></select></div>}
+    {creating ? <>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div><label htmlFor={`${uid}-property`} className="mb-1.5 block text-sm font-medium">Property</label><select id={`${uid}-property`} required value={propertyId} onChange={(event) => setPropertyId(event.target.value)} className="rental-input"><option value="">Choose a property</option>{properties.map((property) => <option key={property.id} value={property.id}>{property.name}</option>)}</select>{properties.length === 0 && <p className="mt-2 text-sm text-muted-foreground">Add a property before creating a utility cost.</p>}</div>
+        <div><label htmlFor={`${uid}-category`} className="mb-1.5 block text-sm font-medium">Utility category</label><select id={`${uid}-category`} required value={category} onChange={(event) => setCategory(event.target.value)} className="rental-input"><option value="">Choose a category</option>{UTILITY_CATEGORIES.map((value) => <option key={value} value={value}>{value[0] + value.slice(1).toLowerCase()}</option>)}</select></div>
+      </div>
+      <div><label htmlFor={`${uid}-title`} className="mb-1.5 block text-sm font-medium">Cost title</label><input id={`${uid}-title`} required maxLength={200} value={title} onChange={(event) => setTitle(event.target.value)} className="rental-input" /></div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div><label htmlFor={`${uid}-provider`} className="mb-1.5 block text-sm font-medium">Provider (optional)</label><input id={`${uid}-provider`} maxLength={100} value={provider} onChange={(event) => setProvider(event.target.value)} className="rental-input" /></div>
+        <div><label htmlFor={`${uid}-period`} className="mb-1.5 block text-sm font-medium">Reporting month</label><input id={`${uid}-period`} type="month" min="2000-01" max="2100-12" required value={reportingPeriod} onChange={(event) => setReportingPeriod(event.target.value)} className="rental-input" /></div>
+      </div>
+      <p className="text-sm leading-relaxed text-muted-foreground">Creates one cost for this payment, dated {transaction.postedDate}, and links the Verity transaction. Choose the month the cost belongs to. If a bill or recurring cost already covers it, link that record instead.</p>
+      <p className="text-xs text-muted-foreground">Undo removes the created cost and its match while the cost is unchanged.</p>
+    </> : <>
+      <div><label htmlFor={`${uid}-search`} className="mb-1.5 block text-sm font-medium">Find a rental record</label><input id={`${uid}-search`} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Property, tenant or period" className="rental-input" /></div>
+      <div><label htmlFor={`${uid}-target`} className="mb-1.5 block text-sm font-medium">{kind === "rent" ? "Tenancy and rent period" : kind === "mortgage" ? "Property and mortgage" : "Existing bill"}</label><select id={`${uid}-target`} required value={targetId} onChange={(event) => setTargetId(event.target.value)} className="rental-input"><option value="">Choose a record</option>{choices.map((target) => <option key={target.id} value={target.id}>{target.label}</option>)}</select>{chosen && <p className="mt-2 text-sm text-muted-foreground">{chosen.detail}</p>}{choices.length === 0 && <p className="mt-2 text-sm text-muted-foreground">{kind === "expense" ? "No matching bill. If this cost is not recorded yet, choose Create utility cost above." : "No matching record. Add the tenancy and rent period or mortgage in Rental App, then return here."}</p>}</div>
+    </>}
     {kind === "rent" && <div><label htmlFor={`${uid}-mode`} className="mb-1.5 block text-sm font-medium">How should this affect recorded rent?</label><select id={`${uid}-mode`} value={mode} onChange={(event) => setMode(event.target.value)} className="rental-input"><option value="link_existing">Already recorded — link evidence only</option><option value="add_receipt">Not recorded yet — add this receipt</option></select><p className="mt-2 text-xs text-muted-foreground">Link any existing manual receipts first. This prevents importing money you have already recorded.</p></div>}
     {kind === "mortgage" && <p className="text-sm leading-relaxed text-muted-foreground">This records the actual bank payment. It does not change loan terms or treat forecast principal and interest as bank-confirmed amounts.</p>}
-    {kind === "expense" && <p className="text-sm leading-relaxed text-muted-foreground">This links bank evidence to the existing bill. Its amount, receipt, and service period remain as recorded.</p>}
+    {kind === "expense" && !creating && <p className="text-sm leading-relaxed text-muted-foreground">This links bank evidence to the existing bill. Its amount, receipt, and service period remain as recorded.</p>}
     {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
-    <div className="flex gap-3"><button disabled={busy || !targetId} className="rental-button-primary">{busy ? "Saving…" : "Confirm match"}</button><button type="button" onClick={onCancel} disabled={busy} className="rental-button-secondary">Cancel</button></div>
+    <div className="flex gap-3"><button disabled={busy || (creating ? !propertyId || !category || !title.trim() : !targetId)} className="rental-button-primary">{busy ? "Saving…" : creating ? "Create utility cost and match" : "Confirm match"}</button><button type="button" onClick={onCancel} disabled={busy} className="rental-button-secondary">Cancel</button></div>
   </form>;
 }
